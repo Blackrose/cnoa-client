@@ -176,6 +176,16 @@ class CommandLineInterface(cmd.Cmd):
     def do_EOF(self, line):
         return True
 
+def save_message(msg):
+    if msg['type'] == "person":
+        f = open("log/user-" + msg['fuid'] + ".json", "a+")
+        f.write(json.dumps(msg))
+        f.close()
+    elif msg['type'] == "group":
+        f = open("log/group-" + msg['gid'] + ".json", "a+")
+        f.write(json.dumps(msg))
+        f.close()
+
 def daemon_thread(threadName, session):
     global server_url, scan_url, headers, msg_list
     
@@ -208,8 +218,10 @@ def daemon_thread(threadName, session):
                         f.close()
                     
                     msg_list.append(it)
+                    save_message(it)
                     #send_msg(session, it['fuid'], it['content'] + " kevin", "person")
                 elif it['type'] == "group":
+                    print it
                     #print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
                     
                     file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
@@ -226,6 +238,7 @@ def daemon_thread(threadName, session):
                         f.close()
 
                     msg_list.append(it)
+                    save_message(it)
                     #send_msg(session, it['gid'], it['content'] + " kevin", "group")
         
         time.sleep(2)
