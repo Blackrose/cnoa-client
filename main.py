@@ -176,6 +176,16 @@ class CommandLineInterface(cmd.Cmd):
     def do_EOF(self, line):
         return True
 
+def save_file(file_name, file_content):
+    f = open("files/" + file_name, "w+")
+    f.write(file_content)
+    f.close
+
+def save_picture(file_name, file_content):
+    f = open("img/" + file_name, "w+")
+    f.write(file_content)
+    f.close
+
 def save_message(msg):
     if msg['type'] == "person":
         f = open("log/user-" + msg['fuid'] + ".json", "a+")
@@ -213,10 +223,14 @@ def daemon_thread(threadName, session):
                         print file_url, file_name
                         # get file and save it to local
                         r = session.get(server_url + "/" + file_url, headers=headers, stream=True)
-                        f = open("img/" + file_name[0], "w+")
-                        f.write(r.content)
-                        f.close()
-                    
+                        save_picture(file_name[0], r.content)
+                    """
+                    if type(it['content']) is list:
+                        file_json = it['content']
+                        print file_json
+                        r = session.get(server_url + "/api/messagev2/?action=file&task=dlload&id=" + file_json['id'], headers=headers)
+                        save_file(file_json['name'], r.content)
+                    """
                     msg_list.append(it)
                     save_message(it)
                     #send_msg(session, it['fuid'], it['content'] + " kevin", "person")
@@ -233,9 +247,7 @@ def daemon_thread(threadName, session):
                     
                         # get file and save it to local
                         r = session.get(server_url + "/" + file_url, headers=headers, stream=True)
-                        f = open("img/" + file_name[0], "w+")
-                        f.write(r.content)
-                        f.close()
+                        save_picture(file_name[0], r.content)
 
                     msg_list.append(it)
                     save_message(it)
