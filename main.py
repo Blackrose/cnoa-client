@@ -19,13 +19,13 @@ config.json
 
 login_data = {'username': '',
         'password': '',
-        #'serverurl': server_url
         'serverurl': ''
         }
 
+server_url = ""
 
 def load_config():
-    global login_data
+    global login_data, server_url
     f = codecs.open("config.json")
     config_data = f.read()
     f.close()
@@ -36,8 +36,6 @@ def load_config():
     login_data['serverurl'] = user_data['server_address']
 
 
-#server_url = "http://113.87.195.133:81"
-server_url = "http://121.35.112.153:81"
 
 scan_url = "/api/messagerv2/index.php?action=scan"
 login_url = "/api/messagerv2/index.php?action=login&task=login"
@@ -47,7 +45,10 @@ user_agent = 'Mozilla/5.0 (Windows; U; en-US) AppleWebKit/533.19.4 (KHTML, like 
 headers = {'User-Agent': user_agent}
 
 def cnoa_login(session):
-    global is_login, login_url, headers, login_data
+    global is_login, login_url, headers, login_data, server_url
+    r = session.get(login_data['serverurl'] + "/i/", headers=headers, stream=True)
+    server_url = r.text
+    print "Real Server IP : %s" % (server_url)
     r = session.post(server_url + login_url, data=login_data, headers=headers, stream=True)
     print r.text
     print "Cookies: %s " %r.cookies
