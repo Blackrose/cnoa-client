@@ -173,6 +173,16 @@ class CommandLineInterface(cmd.Cmd):
         elif msg_list[msg_id]['type'] == "group":
             send_msg(session, msg_list[msg_id]['gid'], msg, "group")
 
+    def do_sendmsg(self, line):
+        global msg_list
+        msg_id = int(line)
+        
+        msg = raw_input("Please input message :")
+
+        send_msg(session, msg_id, msg, "person")
+        #send_msg(session, msg_list[msg_id]['gid'], msg, "group")
+
+
 
     def do_EOF(self, line):
         return True
@@ -203,7 +213,7 @@ def daemon_thread(threadName, session):
     while True:
         r = session.post(server_url + scan_url, headers=headers, stream=True)
         data = r.text
-        if not data:
+        if data is None:
             continue
         data = json.loads(data)
         if data.has_key("ol"):
