@@ -207,8 +207,13 @@ def daemon_thread(threadName, session):
             continue
         data = json.loads(data)
         if data.has_key("ol"):
-            #print data
-            pass
+            online_status =  data["ol"]
+            #print online_status
+            for p in online_status:
+                for i in contacts_list:
+                    if p[0] == i["uid"]:
+                        i["iconCls"] = "icon-tree-im-online"
+            
         elif data.has_key("hh"):
             msg = data.get("hh")
             for it in msg:
