@@ -262,11 +262,19 @@ def daemon_thread(threadName, session):
             msg = data.get("hh")
             for it in msg:
                 if it['type'] == "person":
-                    print find_name_by_id(it['fuid'])
-                    #print "MSG [%s] %s\r\n%s\r\n" % (find_name_by_id(it['fuid']), it['posttime'], it['content'])
+                    print "%s" % it
                      
-                    file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
-                    if file_url:
+                    if type(it['content']) is dict:
+                        # recv files
+                        file_json = it['content']
+                        print file_json
+                        headers["Referer"] = "app:/app/c.html"
+                        r = session.get(server_url + "/api/messagev2/?action=file&task=dlload&id=" + str(file_json['id']), headers=headers)
+                        print r.text
+                        #save_file(file_json['name'], r.content)
+                    else:
+                        # recv pictures
+                        file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
                         file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", file_url[0])
                         # remove ">
                         file_url = file_url[0][0:len(file_url) - 3]
@@ -274,13 +282,7 @@ def daemon_thread(threadName, session):
                         # get file and save it to local
                         r = session.get(server_url + "/" + file_url, headers=headers, stream=True)
                         save_picture(file_name[0], r.content)
-                    """
-                    if type(it['content']) is list:
-                        file_json = it['content']
-                        print file_json
-                        r = session.get(server_url + "/api/messagev2/?action=file&task=dlload&id=" + file_json['id'], headers=headers)
-                        save_file(file_json['name'], r.content)
-                    """
+                    
                     msg_list.append(it)
                     save_message(it)
                     #send_msg(session, it['fuid'], it['content'] + " kevin", "person")
