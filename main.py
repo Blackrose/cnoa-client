@@ -247,7 +247,7 @@ def daemon_thread(threadName, session):
     while True:
         r = session.post(server_url + scan_url, headers=headers, stream=True)
         data = r.text
-        print data
+        #print data
         if data is None:
             continue
         data = json.loads(data)
@@ -314,7 +314,10 @@ def daemon_thread(threadName, session):
                     msg_list.append(it)
                     save_message(it)
                     #send_msg(session, it['gid'], it['content'] + " kevin", "group")
-        
+        elif data.has_key("xx"):
+            xx = data.get("xx")
+            #print xx
+            pass
         time.sleep(2)
 
 
