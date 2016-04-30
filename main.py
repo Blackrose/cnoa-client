@@ -247,6 +247,7 @@ def daemon_thread(threadName, session):
     while True:
         r = session.post(server_url + scan_url, headers=headers, stream=True)
         data = r.text
+        print data
         if data is None:
             continue
         data = json.loads(data)
@@ -268,10 +269,19 @@ def daemon_thread(threadName, session):
                         # recv files
                         file_json = it['content']
                         print file_json
-                        headers["Referer"] = "app:/app/c.html"
-                        r = session.get(server_url + "/api/messagev2/?action=file&task=dlload&id=" + str(file_json['id']), headers=headers)
-                        print r.text
-                        #save_file(file_json['name'], r.content)
+                        r = session.get(server_url + "/api/messagerv2/?action=file&task=dlload&id=" + str(file_json['id']), headers=headers, allow_redirects=False)
+                        file_url = r.headers['location']
+                        file_url = file_url[5:len(file_url)]
+                        print file_url
+                        r = session.get(server_url + file_url, headers=headers)
+                        save_file(file_json['name'], r.content)
+
+                        datas = {
+                                "fileid": file_json["id"],
+                                "historyid": it['id']
+                                }
+                        r = session.get(server_url + "/api/messagerv2/?action=file&task=downcomplete", headers=headers, data=datas)
+                        print r
                     else:
                         # recv pictures
                         file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
