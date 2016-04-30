@@ -7,6 +7,8 @@ import logging
 import cmd
 import thread
 import re
+import os
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
 config.json
@@ -110,6 +112,30 @@ def send_msg(session, msg_id, msg, msg_type):
     request = session.post(server_url + sendmsg_url, data=msg_data, headers=headers)
     print "SendMsg: %s" %request.text
 
+def send_file(session, uid, file_path):
+    global server_url, headers
+    sendfile_url = "/api/messagerv2/?action=file&task=upload&uid=" + uid
+    filename = os.path.basename(file_path)
+    """
+    m = MultipartEncoder(
+                    fields = {'Filename': filename,
+                        'FILES': (filename, open(file_path, 'rb'), 'application/octet-stream'),
+                        'Upload': 'Submit Query'
+                        }
+                    )
+        
+    request = session.post(server_url + sendfile_url, data=m, headers=headers)
+    """
+    data = {
+            "Filename": filename,
+            "Upload": "Submit Query"
+            }
+    files = {'FILES': open(file_path, 'rb')}
+    request = session.post(server_url + sendfile_url, data=data, headers=headers, files=files)
+    print "SendFiles: %s" % request.text
+
+
+
 def get_noticelist(session):
     global server_url, headers
     get_notice_url = "/api/messagerv2/index.php?action=notice&task=getNoticeList"
@@ -160,6 +186,14 @@ class CommandLineInterface(cmd.Cmd):
             elif it['type'] == "group":
                 print "{MSG No%d} [%s - %s] %s\r\n%s\r\n" % (i, it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
             i += 1
+    def do_sendfile(self, line):
+        global session
+        
+        file_path = raw_input("Please input file path:")
+
+        send_file(session, line, file_path)
+        
+
 
     def do_reply(self, line):
         global msg_list
