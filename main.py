@@ -8,7 +8,7 @@ import cmd
 import thread
 import re
 import os
-from requests_toolbelt.multipart.encoder import MultipartEncoder
+#from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
 config.json
@@ -247,10 +247,10 @@ def daemon_thread(threadName, session):
     while True:
         r = session.post(server_url + scan_url, headers=headers, stream=True)
         data = r.text
-        #print data
-        if data is None:
+        if data == "":
             continue
         data = json.loads(data)
+        print data
         if data.has_key("ol"):
             online_status =  data["ol"]
             #print online_status
@@ -282,6 +282,8 @@ def daemon_thread(threadName, session):
                                 }
                         r = session.get(server_url + "/api/messagerv2/?action=file&task=downcomplete", headers=headers, data=datas)
                         print r
+                    elif type(it['content']) is str:
+                        print it['content']
                     else:
                         # recv pictures
                         file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
