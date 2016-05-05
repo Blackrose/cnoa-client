@@ -157,16 +157,22 @@ class CommandLineInterface(cmd.Cmd):
     def help_help(self):
         print "showlist - show current contacts list"
 
-    def do_update(self, line):
-        print "cmdloop"
-        r = session.post(server_url + scan_url, headers=headers, stream=True)
-        data = r.text
-        data = json.loads(data)
-        print data
-        if data.has_key("ol"):
-            print data
-        elif data.has_key("hh"):
-            msg = data.get("hh")
+    def do_chatlog(self, line):
+        prefix = ""
+        dir_path = "log/"
+        log_files = os.listdir(dir_path)
+        print log_files
+        idx = int(raw_input("choose one:"))
+        fp = open(dir_path + log_files[idx])
+        for line in fp.readlines():
+            if line != "":
+                data = json.loads(line)
+                #print data
+                print find_name_by_id(data['fuid']), data['posttime'], data['content']
+        #for it in data:
+        #    print "[%s] %s\r\n%s\r\n" % (find_name_by_id(it['fuid']), it['posttime'], it['content'])
+
+        """
             for it in msg:
                 if it['type'] == "person":
                     print find_name_by_id(it['fuid'])
@@ -175,7 +181,7 @@ class CommandLineInterface(cmd.Cmd):
                 elif it['type'] == "group":
                     print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
                     send_msg(session, it['gid'], it['content'] + " kevin", "group")
-
+        """
     def do_msglist(self, line):
         global msg_list
         print msg_list
@@ -235,10 +241,12 @@ def save_message(msg):
     if msg['type'] == "person":
         f = open("log/user-" + msg['fuid'] + ".json", "a+")
         f.write(json.dumps(msg))
+        f.write("\n")
         f.close()
     elif msg['type'] == "group":
         f = open("log/group-" + msg['gid'] + ".json", "a+")
         f.write(json.dumps(msg))
+        f.write("\n")
         f.close()
 
 def daemon_thread(threadName, session):
@@ -250,7 +258,7 @@ def daemon_thread(threadName, session):
         if data == "":
             continue
         data = json.loads(data)
-        print data
+        #print data
         if data.has_key("ol"):
             online_status =  data["ol"]
             #print online_status
