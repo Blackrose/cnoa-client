@@ -134,6 +134,50 @@ def send_file(session, uid, file_path):
     request = session.post(server_url + sendfile_url, data=data, headers=headers, files=files)
     print "SendFiles: %s" % request.text
 
+def check_in(session):
+    global server_url, headers
+    get_time = "/index.php?app=att&func=person&action=register&task=getRegisterTime"
+    add_register_time = "/index.php?app=att&func=person&action=register&task=addChecktime"
+                        
+    check_in_data = {
+            'num': '',
+            'classes': '',
+            'workType': '',
+            'time': '',
+            'stime': '',
+            'etime': '',
+            'recTime': '',
+            'explain': '',
+            'date': '',
+            'nowTime': ''
+            }
+
+    r = session.get(server_url + get_time, headers=headers)
+    response = json.loads(r.text)
+    time_data = response['data']
+
+    for i in time_data:
+        print "%s ~ %s : %s" % (i['stime'], i['etime'], i['recTime'])
+                                                     
+    idx = int(raw_input("please input check-in idx:"))
+    check_in_data['num'] = time_data[idx]['num']
+    check_in_data['classes'] = time_data[idx]['classes']
+    check_in_data['workType'] = time_data[idx]['workType']
+    check_in_data['time'] = time_data[idx]['time']
+    check_in_data['stime'] = time_data[idx]['stime']
+    check_in_data['etime'] = time_data[idx]['etime']
+    check_in_data['date'] = time_data[idx]['date']
+    check_in_data['nowTime'] = time_data[idx]['nowTime']
+    check_in_data['recTime'] = time_data[idx]['nowTime']
+
+    print check_in_data
+
+    r = session.post(server_url + add_register_time, headers=headers, data=check_in_data)
+    ret_json = json.loads(r.text)
+    if ret_json.has_key("success"):
+        print ret_json['msg']
+    elif ret_json.has_key("failure"):
+        print ret_json['msg']
 
 
 def get_noticelist(session):
@@ -198,8 +242,8 @@ class CommandLineInterface(cmd.Cmd):
         file_path = raw_input("Please input file path:")
 
         send_file(session, line, file_path)
-        
-
+    def do_checkin(self, line):
+        check_in(session)
 
     def do_reply(self, line):
         global msg_list
@@ -293,6 +337,8 @@ def daemon_thread(threadName, session):
                     elif type(it['content']) is str:
                         print it['content']
                     else:
+                        pass
+                        """
                         # recv pictures
                         file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
                         file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", file_url[0])
@@ -302,6 +348,7 @@ def daemon_thread(threadName, session):
                         # get file and save it to local
                         r = session.get(server_url + "/" + file_url, headers=headers, stream=True)
                         save_picture(file_name[0], r.content)
+                        """
                     
                     msg_list.append(it)
                     save_message(it)
