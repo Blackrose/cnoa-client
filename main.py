@@ -8,6 +8,7 @@ import cmd
 import thread
 import re
 import os
+import logging
 #from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
@@ -25,6 +26,7 @@ login_data = {'username': '',
         }
 
 server_url = ""
+cnoa_log = None
 
 def load_config():
     global login_data, server_url
@@ -303,6 +305,7 @@ def daemon_thread(threadName, session):
             continue
         data = json.loads(data)
         #print data
+        logging.info(data)
         if data.has_key("ol"):
             online_status =  data["ol"]
             #print online_status
@@ -378,18 +381,19 @@ def daemon_thread(threadName, session):
         time.sleep(2)
 
 
-
 if __name__ == '__main__':
     global query_list, session
     
     load_config()
-    """
-    logging.basicConfig()
+    
+    FORMAT = '%(asctime)s %(message)s'
+    
+    logging.basicConfig(filename='cnoa.log', format=FORMAT)
     logging.getLogger().setLevel(logging.DEBUG)
     requests_log = logging.getLogger("requests.packages.urllib3")
     requests_log.setLevel(logging.DEBUG)
     requests_log.propagate = True
-    """
+    
     session = requests.Session()
     
     if cnoa_login(session):
