@@ -412,30 +412,3 @@ if __name__ == '__main__':
     
     CommandLineInterface().cmdloop()
     
-    """
-
-    while True:
-        r = session.post(server_url + scan_url, headers=headers, stream=True)
-        data = r.text
-        if data:
-            #print json.loads(data)
-            data = json.loads(data)
-            if data.has_key("hh"):
-                print "%r" %data
-                msg = data.get("hh")
-                print "%r" %msg
-                for it in msg:
-
-                    if it['type'] == "person":
-                        print find_name_by_id(it['fuid'])
-                        print "MSG [%s] %s\r\n%s\r\n" % (find_name_by_id(it['fuid']), it['posttime'], it['content'])
-                        send_msg(session, it['fuid'], it['content'] + " kevin", "person")
-                    elif it['type'] == "group":
-                        print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
-                        send_msg(session, it['gid'], it['content'] + " kevin", "group")
-            else:
-                print data
-         
-        time.sleep(2)
-        get_noticelist(session)
-    """
