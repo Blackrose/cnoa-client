@@ -54,7 +54,7 @@ def cnoa_login(session):
     server_url = r.text
     print "Real Server IP : %s" % (server_url)
     r = session.post(server_url + login_url, data=login_data, headers=headers, stream=True)
-    print r.text
+    #print r.text
     print "Cookies: %s " %r.cookies
     return True
 
@@ -63,7 +63,7 @@ contacts_list = []
 def parser_json(data):
     global contacts_list
     ddata = json.loads(data)
-    print ddata
+    #print ddata
     #print ddata[0]['text']
     for i in ddata:
         if i['leaf']:
@@ -84,7 +84,7 @@ def find_name_by_id(id_no):
 
 def get_list(session, item_id):
     global server_url, headers
-    print "get Contacts list"
+    #print "get Contacts list"
     get_contactlist = "/index.php?app=communication&func=im&version=50008&action=index&task=getAllUserListsInDeptTree"
     node_data = {'node': item_id}
 
@@ -196,7 +196,7 @@ class CommandLineInterface(cmd.Cmd):
     global session, server_url, scan_url, headers
     
     def do_showlist(self, line):
-        print contacts_list
+        #print contacts_list
         for p in contacts_list:
             print "%s %s - %s" % (p['uid'], p['text'], p['iconCls'])
     
@@ -382,7 +382,7 @@ def daemon_thread(threadName, session):
 
 
 if __name__ == '__main__':
-    global query_list, session
+    global session
     
     load_config()
     
