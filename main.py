@@ -9,6 +9,7 @@ import thread
 import re
 import os
 import logging
+import sys
 #from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
@@ -54,9 +55,10 @@ def cnoa_login(session):
     server_url = r.text
     print "Real Server IP : %s" % (server_url)
     r = session.post(server_url + login_url, data=login_data, headers=headers, stream=True)
-    #print r.text
-    print "Cookies: %s " %r.cookies
-    return True
+    ret = json.loads(r.text)
+    print ret['msg']
+    return ret['success']
+
 
 contacts_list = []
 
@@ -397,10 +399,8 @@ if __name__ == '__main__':
     
     session = requests.Session()
     
-    if cnoa_login(session):
-        print "Login Successful!"  
-    else:
-        print "Failed"
+    if not cnoa_login(session):
+        sys.exit()
 
     print query_list
     for i in query_list:
