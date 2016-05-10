@@ -301,9 +301,10 @@ def daemon_thread(threadName, session):
     while True:
         r = session.post(server_url + scan_url, headers=headers, stream=True)
         data = r.text
-        if data == "":
+        try:
+            data = json.loads(data)
+        except ValueError, e:
             continue
-        data = json.loads(data)
         #print data
         logging.info(data)
         if data.has_key("ol"):
