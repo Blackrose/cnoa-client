@@ -120,6 +120,9 @@ def send_msg(session, msg_id, msg, msg_type):
             "content": msg,
             "fontsize": "14px"}
     request = session.post(server_url + sendmsg_url, data=msg_data, headers=headers)
+    msg_data["posttime"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    msg_data["fuid"] = msg_data["id"]
+    save_message(msg_data)
     print "SendMsg: %s" %request.text
 
 def send_file(session, uid, file_path):
@@ -293,7 +296,12 @@ def save_picture(file_name, file_content):
 
 def save_message(msg):
     if msg['type'] == "person":
-        f = open("log/user-" + msg['fuid'] + ".json", "a+")
+        uid = ""
+        if msg.has_key("fname"):
+            uid = msg['fuid']
+        elif msg.has_key("id"):
+            uid = msg['id']
+        f = open("log/user-" + str(uid) + ".json", "a+")
         f.write(json.dumps(msg))
         f.write("\n")
         f.close()
