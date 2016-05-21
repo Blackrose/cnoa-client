@@ -10,6 +10,7 @@ import re
 import os
 import logging
 import sys
+import operator
 #from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
@@ -218,27 +219,23 @@ class CommandLineInterface(cmd.Cmd):
         prefix = ""
         dir_path = "log/"
         log_files = os.listdir(dir_path)
-        print log_files
+        file_mtime = []
+        
+        for fp in log_files:
+            file_mtime.append(
+                    dict(file_mtime=int(os.stat(dir_path + fp).st_mtime),
+                file_path=fp))
+        file_mtime.sort(key=operator.itemgetter('file_mtime'), reverse=True)
+        print file_mtime
+        #print log_files
         idx = int(raw_input("choose one:"))
-        fp = open(dir_path + log_files[idx])
+        fp = open(dir_path + file_mtime[idx]['file_path'])
         for line in fp.readlines():
             if line != "":
                 data = json.loads(line)
                 #print data
                 print find_name_by_id(data['fuid']), data['posttime'], data['content']
-        #for it in data:
-        #    print "[%s] %s\r\n%s\r\n" % (find_name_by_id(it['fuid']), it['posttime'], it['content'])
 
-        """
-            for it in msg:
-                if it['type'] == "person":
-                    print find_name_by_id(it['fuid'])
-                    print "MSG [%s] %s\r\n%s\r\n" % (find_name_by_id(it['fuid']), it['posttime'], it['content'])
-                    send_msg(session, it['fuid'], it['content'] + " kevin", "person")
-                elif it['type'] == "group":
-                    print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
-                    send_msg(session, it['gid'], it['content'] + " kevin", "group")
-        """
     def do_msglist(self, line):
         global msg_list
         print msg_list
