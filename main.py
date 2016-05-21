@@ -39,7 +39,13 @@ def load_config():
     login_data['username'] = user_data['user_name'].encode('utf-8')
     login_data['password'] = user_data['user_password']
     login_data['serverurl'] = user_data['server_address']
-
+    
+    if not os.path.exists(os.getcwd() + "/log"):
+        os.makedirs(os.getcwd() + "/log")
+    if not os.path.exists(os.getcwd() + "/files"):
+        os.makedirs(os.getcwd() + "/files")
+    if not os.path.exists(os.getcwd() + "/img"):
+        os.makedirs(os.getcwd() + "/img")
 
 
 scan_url = "/api/messagerv2/index.php?action=scan"
