@@ -11,6 +11,7 @@ import os
 import logging
 import sys
 import operator
+import dbus
 #from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
@@ -29,6 +30,7 @@ login_data = {'username': '',
 
 server_url = ""
 cnoa_log = None
+notify = None
 
 def load_config():
     global login_data, server_url
@@ -309,7 +311,7 @@ def save_message(msg):
         f.close()
 
 def daemon_thread(threadName, session):
-    global server_url, scan_url, headers, msg_list
+    global server_url, scan_url, headers, msg_list, notify
     
     while True:
         r = session.post(server_url + scan_url, headers=headers, stream=True)
@@ -353,19 +355,24 @@ def daemon_thread(threadName, session):
                         print r
                     elif type(it['content']) is str:
                         print it['content']
-                    else:
-                        pass
-                        """
+                        notify.write_notify("hello", "test")
+                    elif re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content']):
+                        pic_content =  re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content'])
+                        #pass
+                        pic_content = pic_content[0]
+                        print len(pic_content), pic_content 
                         # recv pictures
-                        file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
-                        file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", file_url[0])
+                        file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content[1])
+                        file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content[1])
                         # remove ">
-                        file_url = file_url[0][0:len(file_url) - 3]
+                        #file_url = file_url[0][0:len(file_url) - 3]
+                        file_url = file_url[0] 
+                        file_name = file_name[0]
                         print file_url, file_name
                         # get file and save it to local
-                        r = session.get(server_url + "/" + file_url, headers=headers, stream=True)
-                        save_picture(file_name[0], r.content)
-                        """
+                        r = session.get(server_url + "/" + file_url + file_name, headers=headers, stream=True)
+                        save_picture(file_name, r.content)
+                        
                     
                     msg_list.append(it)
                     save_message(it)
@@ -394,11 +401,23 @@ def daemon_thread(threadName, session):
             pass
         time.sleep(2)
 
+class KNotify:
+    knotify = None
+    def __init__(self):
+        self.knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
+    def write_notify(self, title, text):
+        print title, text
+        knotify.event("warning", "kde", [], title, 
+                text, [], [], 0, 0,
+                dbus_interface="org.kde.KNotify")
 
 if __name__ == '__main__':
-    global session
+    global session, notify
     
     load_config()
+
+    notify = KNotify()
+
     
     FORMAT = '%(asctime)s %(message)s'
     

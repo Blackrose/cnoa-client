@@ -3,3 +3,6 @@
 *.swp
 files
 *.log
+log/
+img/
+files/
