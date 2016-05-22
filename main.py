@@ -335,6 +335,7 @@ def daemon_thread(threadName, session):
             for it in msg:
                 if it['type'] == "person":
                     print "%s" % it
+                    #print type(it['content'])
                      
                     if type(it['content']) is dict:
                         # recv files
@@ -353,9 +354,9 @@ def daemon_thread(threadName, session):
                                 }
                         r = session.get(server_url + "/api/messagerv2/?action=file&task=downcomplete", headers=headers, data=datas)
                         print r
-                    elif type(it['content']) is str:
-                        print it['content']
-                        notify.write_notify("hello", "test")
+                        notify.write_notify(
+                                find_name_by_id(it['fuid']), 
+                                file_json['name'])
                     elif re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content']):
                         pic_content =  re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content'])
                         #pass
@@ -372,11 +373,17 @@ def daemon_thread(threadName, session):
                         # get file and save it to local
                         r = session.get(server_url + "/" + file_url + file_name, headers=headers, stream=True)
                         save_picture(file_name, r.content)
-                        
+                        notify.write_notify(
+                                find_name_by_id(it['fuid']), 
+                                it['content'])
+                    elif type(it['content']) is unicode:
+                        #print it['content']
                     
+                        notify.write_notify(
+                                find_name_by_id(it['fuid']), 
+                                it['content'])
                     msg_list.append(it)
                     save_message(it)
-                    #send_msg(session, it['fuid'], it['content'] + " kevin", "person")
                 elif it['type'] == "group":
                     print it
                     #print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
@@ -394,7 +401,6 @@ def daemon_thread(threadName, session):
 
                     msg_list.append(it)
                     save_message(it)
-                    #send_msg(session, it['gid'], it['content'] + " kevin", "group")
         elif data.has_key("xx"):
             xx = data.get("xx")
             #print xx
@@ -406,8 +412,8 @@ class KNotify:
     def __init__(self):
         self.knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
     def write_notify(self, title, text):
-        print title, text
-        knotify.event("warning", "kde", [], title, 
+        #print title, text
+        self.knotify.event("warning", "kde", [], title, 
                 text, [], [], 0, 0,
                 dbus_interface="org.kde.KNotify")
 
