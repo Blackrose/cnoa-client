@@ -205,6 +205,31 @@ def get_noticelist(session):
     
 query_list = ['CNOA_main_struct_list_tree_node_1']
 msg_list = []
+group_list = []
+
+def get_group_list(session):
+    global server_url, headers, group_list
+    get_grouplist_url = "/api/messagerv2/index.php?action=group&task=getList"
+
+    request = session.get(server_url + get_grouplist_url, headers=headers)
+    group_json = json.loads(request.text)
+    for grp in group_json['data']:
+        group_list.append(grp)
+        print "gid: %s name: %s" % (grp['gid'], grp['name'])
+
+def get_group_memberlist(session, gid):
+    global server_url, headers, group_list
+    get_group_memberlist_url = "/api/messagerv2/index.php?action=group&task=loadMemberList"
+    group_data = {
+            'gid': gid
+            } 
+    request = session.post(server_url + get_group_memberlist_url,
+            headers=headers, data=group_data)
+    member_data = json.loads(request.text)
+    grp_memberlist = []
+    for mb in member_data['data']:
+        grp_memberlist.append(mb)
+        print "gid: %s name: %s uid: %s" % (mb['gid'], mb['name'], mb['uid'])
 
 class CommandLineInterface(cmd.Cmd):
     global session, server_url, scan_url, headers
@@ -217,6 +242,12 @@ class CommandLineInterface(cmd.Cmd):
     def help_help(self):
         print "showlist - show current contacts list"
 
+    def do_grouplist(self, line):
+        get_group_list(session)
+
+    def do_memberlist(self, line):
+        get_group_memberlist(session, line)
+    
     def do_chatlog(self, line):
         prefix = ""
         dir_path = "log/"
