@@ -85,6 +85,13 @@ def parser_json(data):
 
     return ddata
 
+def is_contact(uid):
+    global contacts_list
+    for it in contacts_list:
+        if uid == int(it['uid']):
+            return True
+    return False
+    
 def find_name_by_id(id_no):
     global contacts_list
     #print contacts_list
@@ -125,6 +132,8 @@ def send_msg(session, msg_id, msg, msg_type):
     request = session.post(server_url + sendmsg_url, data=msg_data, headers=headers)
     msg_data["posttime"] = time.strftime("%Y-%m-%d %H:%M:%S")
     msg_data["fuid"] = msg_data["id"]
+    if msg_type == "group":
+        msg_data['gid'] = msg_id
     save_message(msg_data)
     print "SendMsg: %s" %request.text
 
@@ -217,6 +226,13 @@ def get_group_list(session):
         group_list.append(grp)
         print "gid: %s name: %s" % (grp['gid'], grp['name'])
 
+def is_group(gid):
+    global group_list
+    for grp in group_list:
+        if int(grp['gid']) == gid:
+            return True
+    return False
+
 def get_group_memberlist(session, gid):
     global server_url, headers, group_list
     get_group_memberlist_url = "/api/messagerv2/index.php?action=group&task=loadMemberList"
@@ -301,14 +317,16 @@ class CommandLineInterface(cmd.Cmd):
             send_msg(session, msg_list[msg_id]['gid'], msg, "group")
 
     def do_sendmsg(self, line):
-        global msg_list
+        global msg_list, group_list
         msg_id = int(line)
         
         msg = raw_input("Please input message :")
-
-        send_msg(session, msg_id, msg, "person")
-        #send_msg(session, msg_list[msg_id]['gid'], msg, "group")
-
+        if is_contact(msg_id):
+            send_msg(session, msg_id, msg, "person")
+        elif is_group(msg_id):
+            send_msg(session, msg_id, msg, "group")
+        else:
+            print "Your target id is wrong!!"
 
 
     def do_EOF(self, line):
@@ -336,7 +354,7 @@ def save_message(msg):
         f.write("\n")
         f.close()
     elif msg['type'] == "group":
-        f = open("log/group-" + msg['gid'] + ".json", "a+")
+        f = open("log/group-" + str(msg['gid']) + ".json", "a+")
         f.write(json.dumps(msg))
         f.write("\n")
         f.close()
