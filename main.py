@@ -12,6 +12,8 @@ import logging
 import sys
 import operator
 import dbus
+import gui
+from PySide import QtGui, QtCore
 #from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 """
@@ -467,7 +469,7 @@ class KNotify:
                 dbus_interface="org.kde.KNotify")
 
 if __name__ == '__main__':
-    global session, notify
+    global session, notify, group_list
     
     load_config()
 
@@ -499,6 +501,12 @@ if __name__ == '__main__':
         thread.start_new_thread(daemon_thread, ("daemon", session))
     except:
         print "Thread start failed!"
-    
+    app = QtGui.QApplication(sys.argv)
+    cnoa_gui = gui.CNOAWindow()
+    cnoa_gui.update_user_list(contacts_list) 
+    cnoa_gui.update_user_list(group_list) 
+    sys.exit(app.exec_())
+
+
     CommandLineInterface().cmdloop()
     
