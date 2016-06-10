@@ -3,6 +3,7 @@
 *.swp
 files
 *.log
+*.pyc
 log/
 img/
 files/
