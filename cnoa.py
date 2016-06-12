@@ -125,6 +125,14 @@ class CNOA():
             if id_no == it['uid']:
                 return it['text']
         return None
+    
+    def find_id_by_name(self, name):
+        #print contacts_list
+        for it in self.contacts_list:
+            if name == it['text']:
+                return it['uid']
+        return None
+
 
     def is_group(self, gid):
         for grp in self.group_list:

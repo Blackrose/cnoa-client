@@ -9,7 +9,6 @@ import sys
 import operator
 import dbus
 
-import gui
 from PySide import QtGui, QtCore
 import cnoa
 
@@ -128,7 +127,6 @@ class KNotify:
                 dbus_interface="org.kde.KNotify")
 
 if __name__ == '__main__':
-    global notify
 
     notify = KNotify()
     
@@ -141,12 +139,5 @@ if __name__ == '__main__':
     cnoa_lib.fetch_contacts_list()
     cnoa_lib.fetch_group_list()
     
-    app = QtGui.QApplication(sys.argv)
-    cnoa_gui = gui.CNOAWindow()
-    cnoa_gui.update_user_list(cnoa_lib.get_contacts_list) 
-    cnoa_gui.update_user_list(cnoa_list.get_group_list) 
-    sys.exit(app.exec_())
-
-
-    #CommandLineInterface().cmdloop()
+    CommandLineInterface().cmdloop()
     
