@@ -57,6 +57,7 @@ class CNOAWindow(QtGui.QWidget):
         chat_icon = QtGui.QPixmap("chat-icon.png")
         self.chatlog_label.setPixmap(chat_icon)
         self.chatlog_label.clicked.connect(self.switch_label)
+        self.chatlog_label.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 
         # userlist lable
         self.userlist_label = ActivityLabel()
@@ -107,7 +108,7 @@ class CNOAWindow(QtGui.QWidget):
         chat_layout.addWidget(self.chat_display, 0, 0, 4, 4)
         chat_layout.addWidget(self.chat_edit, 4, 0, 4, 4)
         chat_widget.setLayout(chat_layout)
-        self.chat_edit.commited.connect(self.sendmsg)
+        self.chat_edit.commited.connect(self.slot_sendmsg)
 
         userinfo_widget = QtGui.QWidget()
         userinfo_layout = QtGui.QVBoxLayout()
@@ -141,7 +142,7 @@ class CNOAWindow(QtGui.QWidget):
         self.center()
         self.show()
     
-    def sendmsg(self, msg):
+    def slot_sendmsg(self, msg):
         wid_item = self.user_list.currentItem()
         uid = self.cnoa.find_id_by_name(wid_item.text())
         self.cnoa.send_msg(uid, msg, "person")
@@ -178,16 +179,16 @@ class CNOAWindow(QtGui.QWidget):
                 file_path=fp))
         file_mtime.sort(key=operator.itemgetter('file_mtime'), reverse=True)
         print file_mtime
-        uid = find_id_by_name(item.text())
+        chat_id = self.cnoa.find_id_by_name(item.text())
         #print log_files
         for fp in file_mtime:
-            if fp['file_path'] == "user-" + uid + ".json":
+            if fp['file_path'] == "user-" + chat_id + ".json":
                 break
         #idx = int(raw_input("choose one:"))
 
         #wid_item = self.user_list.currentItem()
         #fid = self.cnoa.find_id_by_name(wid_item.text())
-        fp = open(dir_path + file_mtime[idx]['file_path'])
+        fp = open(dir_path + "user-" + str(chat_id) + ".json")
         for line in fp.readlines():
             if line != "":
                 data = json.loads(line)
