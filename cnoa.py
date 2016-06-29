@@ -8,6 +8,7 @@ import codecs
 import logging
 import threading
 import requests
+import operator
 
 class CNOA():
 
@@ -131,8 +132,10 @@ class CNOA():
         
     def find_name_by_id(self, id_no):
         #print contacts_list
+        if type(id_no) is str:
+            id_no = int(id_no)
         for it in self.contacts_list:
-            if id_no == it['uid']:
+            if id_no == int(it['uid']):
                 return it['text']
         return None
     
@@ -228,7 +231,32 @@ class CNOA():
 
         self.save_message(msg_data)
         print "SendMsg: %s" %request.text
+    
+    def get_recentchat_list(self):
 
+        dir_path = "log/"
+        log_files = os.listdir(dir_path)
+        file_mtime = []
+        
+        for fp in log_files:
+            file_mtime.append(
+                    dict(file_mtime=int(os.stat(dir_path + fp).st_mtime),
+                file_path=fp))
+        file_mtime.sort(key=operator.itemgetter('file_mtime'), reverse=True)
+        print file_mtime
+        recent_list = []
+        for item in file_mtime:
+            chat_id = item['file_path']
+            if chat_id[4] == '-':
+                chat_id = (chat_id.split('user-'))[1]
+                chat_id = (chat_id.split('.json'))[0]
+            elif chat_id[5] == '-':
+                chat_id = (chat_id.split('group-'))[1]
+                chat_id = (chat_id.split('.json'))[0]
+            recent_list.append(chat_id)
+        print recent_list
+        return recent_list
+    
     def save_message(self, msg):
         if msg['type'] == "person":
             uid = ""

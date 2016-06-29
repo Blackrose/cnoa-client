@@ -37,7 +37,8 @@ class CNOAWindow(QtGui.QWidget):
 
         self.cnoa = cnoa_lib
         self.initUI()
-
+        
+        self.update_recentchat_list(self.cnoa.get_recentchat_list())
         self.update_user_list(self.cnoa.get_contacts_list())
         self.update_group_list(self.cnoa.get_group_list())
 
@@ -212,6 +213,12 @@ class CNOAWindow(QtGui.QWidget):
                 else:
                     user_name = self.cnoa.find_name_by_id(data['fuid'])
                 self.chat_display.insertPlainText(user_name + data['posttime'] + data['content'] + "\r\n")
+    
+    def update_recentchat_list(self, recent_list):
+        for rec in recent_list:
+            self.chatlog_list.addItem(QtGui.QListWidgetItem(
+                QtGui.QIcon("user-icon.png"), 
+                self.cnoa.find_name_by_id(rec)))
 
 
     def update_chatlog_list(self, log_list):
