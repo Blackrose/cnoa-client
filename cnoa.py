@@ -18,6 +18,10 @@ class CNOA():
         'password': '',
         'serverurl': ''
         }
+    personal_info = {
+            'username':'',
+            'uid': ''
+            }
 
     
     def __init__(self, notify):
@@ -72,11 +76,13 @@ class CNOA():
                 data=self.login_data, headers=self.headers, stream=True)
         ret = json.loads(r.text)
         print ret['msg']
+        self.personal_info['username'] = ret['username']
+        self.personal_info['uid'] = ret['uid']
         
         self.daemon.start()
         
         return ret['success']
-
+    
     def fetch_contacts_list(self):
         query_list = ['CNOA_main_struct_list_tree_node_1']
 
@@ -104,6 +110,10 @@ class CNOA():
         for i in ddata:
             if i['leaf']:
                 print i['uid'], i['text'], i['iconCls']
+                
+                # remove <span style='color:#999'></span>
+                if i['uid'] == self.personal_info['uid']:
+                    i['text'] = self.personal_info['username']
                 self.contacts_list.append(i)
             else:
                 print i['selfid'], i['text']

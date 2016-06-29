@@ -56,7 +56,10 @@ class CNOAWindow(QtGui.QWidget):
         self.chatlog_label = ActivityLabel()
         chat_icon = QtGui.QPixmap("chat-icon.png")
         self.chatlog_label.setPixmap(chat_icon)
+        
+        # switch icon of left panel
         self.chatlog_label.clicked.connect(self.switch_label)
+        
         self.chatlog_label.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
 
         # userlist lable
@@ -84,8 +87,18 @@ class CNOAWindow(QtGui.QWidget):
         self.chatlog_list = QtGui.QListWidget()
         self.user_list = QtGui.QListWidget()
         self.group_list = QtGui.QListWidget()
+        
+        #self.user_list.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
+        self.chatlog_list.setMaximumWidth(100)
+        self.chatlog_list.setMinimumWidth(100)
+        
+        self.user_list.setMaximumWidth(100)
+        self.user_list.setMinimumWidth(100)
+        
+        self.group_list.setMaximumWidth(100)
+        self.group_list.setMinimumWidth(100)
 
-        self.user_list.itemClicked.connect(self.switch_content_widget)
+        self.user_list.itemClicked.connect(self.slot_switch_content_widget)
         self.chatlog_list.itemClicked.connect(self.switch_chatlog_widget)
         
         self.user_list.setVisible(False)
@@ -166,7 +179,7 @@ class CNOAWindow(QtGui.QWidget):
                 self.chat_display.insertPlainText(user_name + data['posttime'] + data['content'] + "\r\n")
 
 
-    def switch_content_widget(self, item):
+    def slot_switch_content_widget(self, item):
         self.chat_display.clear()
 
         dir_path = "log/"
@@ -207,7 +220,8 @@ class CNOAWindow(QtGui.QWidget):
     
     def update_user_list(self, user_list):
         for usr in user_list:
-            self.user_list.addItem(usr['text'])
+            self.user_list.addItem(QtGui.QListWidgetItem(
+                QtGui.QIcon("user-icon.png"), usr['text']))
     
     def update_group_list(self, group_list):
         for grp in group_list:
