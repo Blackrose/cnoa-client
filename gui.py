@@ -126,13 +126,28 @@ class CNOAWindow(QtGui.QWidget):
 
         userinfo_widget = QtGui.QWidget()
         userinfo_layout = QtGui.QVBoxLayout()
-        self.userinfo_container = QtGui.QLabel()
-        userinfo_layout.addWidget(self.userinfo_container)
+        
+        layout1 = QtGui.QHBoxLayout()
+        layout2 = QtGui.QHBoxLayout()
+        self.userinfo_chat_btn = QtGui.QPushButton("Chat with")
+        self.userinfo_username_label = QtGui.QLabel("username")
+        self.userinfo_username_val = QtGui.QLabel()
+        layout1.addWidget(self.userinfo_username_label)
+        layout1.addWidget(self.userinfo_username_val)
+        self.userinfo_userid_label = QtGui.QLabel("user id")
+        self.userinfo_userid_val = QtGui.QLabel()
+        layout2.addWidget(self.userinfo_userid_label)
+        layout2.addWidget(self.userinfo_userid_val)
+
+        userinfo_layout.addLayout(layout1)
+        userinfo_layout.addLayout(layout2)
+        userinfo_layout.addWidget(self.userinfo_chat_btn)
+
         userinfo_widget.setLayout(userinfo_layout)
         
         blank_widget = QtGui.QWidget()
         blank_layout = QtGui.QVBoxLayout()
-        self.blank_container = QtGui.QLabel()
+        self.blank_container = QtGui.QLabel("CNOA client Develop by Kevin.Chen")
         blank_layout.addWidget(self.blank_container)
         blank_widget.setLayout(blank_layout)
 
@@ -181,7 +196,8 @@ class CNOAWindow(QtGui.QWidget):
 
 
     def slot_switch_content_widget(self, item):
-        self.chat_display.clear()
+        #self.chat_display.clear()
+        #self.content_wid.setCurrentIndex()
 
         dir_path = "log/"
         log_files = os.listdir(dir_path)
@@ -235,6 +251,9 @@ class CNOAWindow(QtGui.QWidget):
             self.group_list.addItem(grp['name'])
     
     def switch_label(self, label):
+        # right panel is blank 
+        self.content_wid.setCurrentIndex(1)
+        
         if label is self.chatlog_label:
             self.chatlog_list.setVisible(True)
             self.user_list.setVisible(False)
@@ -256,6 +275,7 @@ class CNOAWindow(QtGui.QWidget):
             self.grouplist_label.setStyleSheet("QLabel {background-color: green;}")
             self.chatlog_label.setStyleSheet("")
             self.userlist_label.setStyleSheet("")
+            
 
         self.update()
 
