@@ -153,10 +153,12 @@ class RightWidget(QtGui.QWidget):
     def slot_chatto(self):
         self.change_widget(1)
         self.chat_label.setText(self.userinfo_username_val.text())
+        self.update_chat_view(int(self.userinfo_userid_val.text()), 1)
 
-    def chating(self, name):
+    def chating(self, name, cid, ctype):
         self.change_widget(1)
         self.chat_label.setText(name)
+        self.update_chat_view(cid, ctype)
 
     def update_userinfo(self, uid, uname):
         self.userinfo_username_val.setText(uname)
@@ -168,32 +170,35 @@ class RightWidget(QtGui.QWidget):
 
     def update_chat_view(self, cid, ctype):
         self.chat_display.clear()
-        dir_path + file_mtime[idx]['file_path'])
         file_path = "log/"
-        if ctype == "person":
-            file_path += "user-" + uid + ".log"
-        elif ctype == "group":
-            file_path += "group-" + uid + ".log"
+        if ctype == 1:
+            file_path += "user-" + str(cid) + ".json"
+        elif ctype == 2:
+            file_path += "group-" + str(cid) + ".json"
 
-        print file_path 
-        if not os.path.exists(file_path):
-            return
+        if os.path.isfile(file_path):
+            print file_path 
 
-        #wid_item = self.user_list.currentItem()
-        #fid = self.cnoa.find_id_by_name(wid_item.text())
-        fp = open(file_path)
-        for line in fp.readlines():
-            if line != "":
-                data = json.loads(line)
-                #print data
+            fp = open(file_path)
+            for line in fp.readlines():
+                if line != "":
+                    data = json.loads(line)
+                    #print data
 
-                if self.cnoa.find_name_by_id(data['fuid']) is None:
-                    user_name = "Me"
-                else:
-                    user_name = self.cnoa.find_name_by_id(data['fuid'])
-                self.chat_display.insertPlainText(user_name + data['posttime'] + data['content'] + "\r\n")
-    
+                    if data['id'] is None:
+                        user_name = "I say: "
+                    else:
+                        user_name = self.chat_label.text()
 
+                    if type(data['content']) is dict:
+                        self.chat_display.insertPlainText(user_name +
+                            data['posttime'] + data['content']['name'] + 
+                            "\r\n") 
+                    else:
+                        self.chat_display.insertPlainText(user_name +
+                            data['posttime'] + data['content'] + "\r\n") 
+            
+        self.update()    
 
 
 class CNOAWindow(QtGui.QWidget):
@@ -277,7 +282,10 @@ class CNOAWindow(QtGui.QWidget):
         self.cnoa.send_msg(uid, msg, "person")
     
     def slot_chating(self, item):
-        self.right_wid.chating(item.text())
+        uname = item.text()
+        self.right_wid.chating(uname, 
+                self.cnoa.find_id_by_name(uname),
+                self.cnoa.get_type(uname))
 
     def slot_switch_right_panel(self, item):
         #self.chat_display.clear()
