@@ -45,6 +45,11 @@ class LeftWidget(QtGui.QWidget):
         self.recentchat_list = QtGui.QListWidget()
         self.user_list = QtGui.QListWidget()
         self.group_list = QtGui.QListWidget()
+
+        self.recentchat_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
+        self.user_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
+        self.group_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
+        self.group_list.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         
         #self.recentchat_list.setMaximumWidth(80)
         #self.recentchat_list.setMinimumWidth(50)
