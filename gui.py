@@ -30,6 +30,171 @@ class TextInputWidget(QtGui.QTextEdit):
             self.clear()
 
         return QtGui.QTextEdit.keyPressEvent(self, event)
+class LeftWidget(QtGui.QWidget):
+    def __init__(self):
+        QtGui.QWidget.__init__(self)
+        self.initUI()
+
+    def initUI(self):
+        self.setMaximumWidth(100)
+        self.setMinimumWidth(80)
+        
+        self.middle_box = QtGui.QStackedLayout()
+        self.setLayout(self.middle_box)
+
+        self.recentchat_list = QtGui.QListWidget()
+        self.user_list = QtGui.QListWidget()
+        self.group_list = QtGui.QListWidget()
+        
+        #self.recentchat_list.setMaximumWidth(80)
+        #self.recentchat_list.setMinimumWidth(50)
+        
+        #self.user_list.setMaximumWidth(100)
+        #self.user_list.setMinimumWidth(100)
+        
+        #self.group_list.setMaximumWidth(100)
+        #self.group_list.setMinimumWidth(100)
+
+        #self.user_list.itemClicked.connect(self.slot_switch_content_widget)
+        #self.recentchat_list.itemClicked.connect(self.switch_recentchat_widget)
+        
+        self.middle_box.addWidget(self.recentchat_list)
+        self.middle_box.addWidget(self.user_list)
+        self.middle_box.addWidget(self.group_list)
+
+    def update_chat_list(self, recent_list):
+        for rec in recent_list:
+            self.recentchat_list.addItem(QtGui.QListWidgetItem(
+                QtGui.QIcon("user-icon.png"), rec['name']))
+
+
+    def update_user_list(self, user_list):
+        for usr in user_list:
+            self.user_list.addItem(QtGui.QListWidgetItem(
+                QtGui.QIcon("user-icon.png"), usr['text']))
+    
+    def update_group_list(self, group_list):
+        for grp in group_list:
+            self.group_list.addItem(grp['name'])
+    
+    def change_widget(self, idx):
+        self.middle_box.setCurrentIndex(idx)
+
+
+class RightWidget(QtGui.QWidget):
+    def __init__(self):
+        #super(RightWidget, self).__init__()
+        QtGui.QWidget.__init__(self)
+        self.initUI()
+    
+    def initUI(self):
+        self.content_wid = QtGui.QStackedLayout()
+        self.setLayout(self.content_wid)
+        
+        # chating widget
+        chat_widget = QtGui.QWidget()
+        chat_layout = QtGui.QGridLayout()
+        self.chat_display = QtGui.QTextEdit()
+        self.chat_label = QtGui.QLabel()
+        self.chat_label.setFixedHeight(40)
+        self.chat_display.setReadOnly(True)
+        self.chat_edit = TextInputWidget()
+        #chat_layout.setColumnMinimumWidth(0, 200)
+        #chat_layout.setRowMinimumHeight(0, 500)
+        
+        #chat_widget.setStyleSheet("QLabel {background-color: green;}")
+        chat_layout.addWidget(self.chat_label, 0, 0)
+        chat_layout.addWidget(self.chat_display, 1, 0)
+        chat_layout.addWidget(self.chat_edit, 2, 0)
+        chat_widget.setLayout(chat_layout)
+        #chat_layout.setRowStretch(0, 1)
+        chat_layout.setRowStretch(1, 6)
+        chat_layout.setRowStretch(2, 2)
+
+        chat_widget.setLayout(chat_layout)
+        
+        
+        # userinfo widget
+        userinfo_widget = QtGui.QWidget()
+        userinfo_layout = QtGui.QVBoxLayout()
+        
+        layout1 = QtGui.QHBoxLayout()
+        layout2 = QtGui.QHBoxLayout()
+        
+        self.userinfo_chat_btn = QtGui.QPushButton("Chat with")
+        self.userinfo_username_label = QtGui.QLabel("username")
+        self.userinfo_username_val = QtGui.QLabel()
+        layout1.addWidget(self.userinfo_username_label)
+        layout1.addWidget(self.userinfo_username_val)
+        self.userinfo_userid_label = QtGui.QLabel("user id")
+        self.userinfo_userid_val = QtGui.QLabel()
+        layout2.addWidget(self.userinfo_userid_label)
+        layout2.addWidget(self.userinfo_userid_val)
+        
+        self.userinfo_chat_btn.clicked.connect(self.slot_chatto)
+
+        userinfo_layout.addLayout(layout1)
+        userinfo_layout.addLayout(layout2)
+        userinfo_layout.addWidget(self.userinfo_chat_btn)
+
+        userinfo_widget.setLayout(userinfo_layout)
+        
+        # blank widget
+        blank_widget = QtGui.QWidget()
+        blank_layout = QtGui.QVBoxLayout()
+        self.blank_container = QtGui.QLabel("CNOA client Develop by Kevin.Chen")
+        blank_layout.addWidget(self.blank_container)
+        blank_widget.setLayout(blank_layout)
+
+        self.content_wid.addWidget(blank_widget)
+        self.content_wid.addWidget(chat_widget)
+        self.content_wid.addWidget(userinfo_widget)
+    
+    def slot_chatto(self):
+        self.change_widget(1)
+        self.chat_label.setText(self.userinfo_username_val.text())
+
+    def chating(self, name):
+        self.change_widget(1)
+        self.chat_label.setText(name)
+
+    def update_userinfo(self, uid, uname):
+        self.userinfo_username_val.setText(uname)
+        self.userinfo_userid_val.setText(uid)
+        self.update()
+    
+    def change_widget(self, idx):
+        self.content_wid.setCurrentIndex(idx)
+
+    def update_chat_view(self, cid, ctype):
+        self.chat_display.clear()
+        dir_path + file_mtime[idx]['file_path'])
+        file_path = "log/"
+        if ctype == "person":
+            file_path += "user-" + uid + ".log"
+        elif ctype == "group":
+            file_path += "group-" + uid + ".log"
+
+        print file_path 
+        if not os.path.exists(file_path):
+            return
+
+        #wid_item = self.user_list.currentItem()
+        #fid = self.cnoa.find_id_by_name(wid_item.text())
+        fp = open(file_path)
+        for line in fp.readlines():
+            if line != "":
+                data = json.loads(line)
+                #print data
+
+                if self.cnoa.find_name_by_id(data['fuid']) is None:
+                    user_name = "Me"
+                else:
+                    user_name = self.cnoa.find_name_by_id(data['fuid'])
+                self.chat_display.insertPlainText(user_name + data['posttime'] + data['content'] + "\r\n")
+    
+
+
 
 class CNOAWindow(QtGui.QWidget):
     def __init__(self, cnoa_lib):
@@ -38,9 +203,9 @@ class CNOAWindow(QtGui.QWidget):
         self.cnoa = cnoa_lib
         self.initUI()
         
-        self.update_recentchat_list(self.cnoa.get_recentchat_list())
-        self.update_user_list(self.cnoa.get_contacts_list())
-        self.update_group_list(self.cnoa.get_group_list())
+        self.left_wid.update_chat_list(self.cnoa.get_recentchat_list())
+        self.left_wid.update_user_list(self.cnoa.get_contacts_list())
+        self.left_wid.update_group_list(self.cnoa.get_group_list())
 
 
     def initUI(self):
@@ -57,6 +222,7 @@ class CNOAWindow(QtGui.QWidget):
         self.chatlog_label = ActivityLabel()
         chat_icon = QtGui.QPixmap("chat-icon.png")
         self.chatlog_label.setPixmap(chat_icon)
+        #self.chatlog_label.setStyleSheet("QLabel {background-color: green;}")
         
         # switch icon of left panel
         self.chatlog_label.clicked.connect(self.switch_label)
@@ -83,88 +249,23 @@ class CNOAWindow(QtGui.QWidget):
         sidebar_layout.addWidget(self.grouplist_label, 4, 0)
         sidebar_layout.setRowStretch(5, 4)
        
-        # middle area
-        self.middle_box = QtGui.QVBoxLayout()
-        self.chatlog_list = QtGui.QListWidget()
-        self.user_list = QtGui.QListWidget()
-        self.group_list = QtGui.QListWidget()
+        # left area
+        self.left_wid = LeftWidget()
+        self.left_wid.user_list.itemClicked.connect(self.slot_switch_right_panel)
+        self.left_wid.group_list.itemClicked.connect(self.slot_switch_right_panel)
+        self.left_wid.recentchat_list.itemClicked.connect(self.slot_chating)
         
-        #self.user_list.setSizePolicy(QtGui.QSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed))
-        self.chatlog_list.setMaximumWidth(100)
-        self.chatlog_list.setMinimumWidth(100)
+        # right area
+        self.right_wid = RightWidget()
+        self.right_wid.change_widget(0)
+
+        mbox = QtGui.QHBoxLayout()
+        mbox.addLayout(sidebar_layout)
+        mbox.addWidget(self.left_wid)
+        mbox.addWidget(self.right_wid)
         
-        self.user_list.setMaximumWidth(100)
-        self.user_list.setMinimumWidth(100)
-        
-        self.group_list.setMaximumWidth(100)
-        self.group_list.setMinimumWidth(100)
+        self.right_wid.chat_edit.commited.connect(self.slot_sendmsg)
 
-        self.user_list.itemClicked.connect(self.slot_switch_content_widget)
-        self.chatlog_list.itemClicked.connect(self.switch_chatlog_widget)
-        
-        self.user_list.setVisible(False)
-        self.group_list.setVisible(False)
-
-        self.middle_box.addWidget(self.chatlog_list)
-        self.middle_box.addWidget(self.user_list)
-        self.middle_box.addWidget(self.group_list)
-
-        # content area
-        self.content_wid = QtGui.QStackedLayout()
-
-        chat_widget = QtGui.QWidget()
-        chat_layout = QtGui.QGridLayout()
-        self.chat_display = QtGui.QTextEdit()
-        self.chat_display.setReadOnly(True)
-        self.chat_edit = TextInputWidget()
-        chat_layout.setColumnMinimumWidth(0, 200)
-        chat_layout.setRowMinimumHeight(0, 500)
-        chat_layout.addWidget(self.chat_display, 0, 0, 4, 4)
-        chat_layout.addWidget(self.chat_edit, 4, 0, 4, 4)
-        chat_widget.setLayout(chat_layout)
-        self.chat_edit.commited.connect(self.slot_sendmsg)
-
-        userinfo_widget = QtGui.QWidget()
-        userinfo_layout = QtGui.QVBoxLayout()
-        
-        layout1 = QtGui.QHBoxLayout()
-        layout2 = QtGui.QHBoxLayout()
-        self.userinfo_chat_btn = QtGui.QPushButton("Chat with")
-        self.userinfo_username_label = QtGui.QLabel("username")
-        self.userinfo_username_val = QtGui.QLabel()
-        layout1.addWidget(self.userinfo_username_label)
-        layout1.addWidget(self.userinfo_username_val)
-        self.userinfo_userid_label = QtGui.QLabel("user id")
-        self.userinfo_userid_val = QtGui.QLabel()
-        layout2.addWidget(self.userinfo_userid_label)
-        layout2.addWidget(self.userinfo_userid_val)
-
-        userinfo_layout.addLayout(layout1)
-        userinfo_layout.addLayout(layout2)
-        userinfo_layout.addWidget(self.userinfo_chat_btn)
-
-        userinfo_widget.setLayout(userinfo_layout)
-        
-        blank_widget = QtGui.QWidget()
-        blank_layout = QtGui.QVBoxLayout()
-        self.blank_container = QtGui.QLabel("CNOA client Develop by Kevin.Chen")
-        blank_layout.addWidget(self.blank_container)
-        blank_widget.setLayout(blank_layout)
-
-        self.content_wid.addWidget(chat_widget)
-        self.content_wid.addWidget(userinfo_widget)
-        self.content_wid.addWidget(blank_widget)
-        
-        #self.content_box.addWidget(self.content_wid)
-
-        mbox = QtGui.QGridLayout()
-        mbox.addLayout(sidebar_layout, 0, 0)
-        mbox.addLayout(self.middle_box, 0, 1)
-        mbox.addLayout(self.content_wid, 0, 2)
-
-        mbox.setColumnStretch(0, 1)
-        mbox.setColumnStretch(1, 2)
-        #mbox.setColumnStretch(3, 4)
         self.setLayout(mbox)
 
         self.resize(600, 600)
@@ -172,113 +273,35 @@ class CNOAWindow(QtGui.QWidget):
         self.show()
     
     def slot_sendmsg(self, msg):
-        wid_item = self.user_list.currentItem()
-        uid = self.cnoa.find_id_by_name(wid_item.text())
+        uid = self.cnoa.find_id_by_name(self.right_wid.chat_label.text())
         self.cnoa.send_msg(uid, msg, "person")
+    
+    def slot_chating(self, item):
+        self.right_wid.chating(item.text())
 
-    def switch_chatlog_widget(self, item):
-        self.chat_display.clear()
-        #idx = int(raw_input("choose one:"))
-
-        #wid_item = self.user_list.currentItem()
-        #fid = self.cnoa.find_id_by_name(wid_item.text())
-        fp = open(dir_path + file_mtime[idx]['file_path'])
-        for line in fp.readlines():
-            if line != "":
-                data = json.loads(line)
-                #print data
-
-                if self.cnoa.find_name_by_id(data['fuid']) is None:
-                    user_name = "Me"
-                else:
-                    user_name = self.cnoa.find_name_by_id(data['fuid'])
-                self.chat_display.insertPlainText(user_name + data['posttime'] + data['content'] + "\r\n")
-
-
-    def slot_switch_content_widget(self, item):
+    def slot_switch_right_panel(self, item):
         #self.chat_display.clear()
-        #self.content_wid.setCurrentIndex()
-
-        dir_path = "log/"
-        log_files = os.listdir(dir_path)
-        file_mtime = []
+        #self.content_wid.setCurrentIndex(2)
         
-        for fp in log_files:
-            file_mtime.append(
-                    dict(file_mtime=int(os.stat(dir_path + fp).st_mtime),
-                file_path=fp))
-        file_mtime.sort(key=operator.itemgetter('file_mtime'), reverse=True)
-        print file_mtime
-        chat_id = self.cnoa.find_id_by_name(item.text())
-        #print log_files
-        for fp in file_mtime:
-            if fp['file_path'] == "user-" + chat_id + ".json":
-                break
-        #idx = int(raw_input("choose one:"))
-
-        #wid_item = self.user_list.currentItem()
-        #fid = self.cnoa.find_id_by_name(wid_item.text())
-        fp = open(dir_path + "user-" + str(chat_id) + ".json")
-        for line in fp.readlines():
-            if line != "":
-                data = json.loads(line)
-                #print data
-
-                if self.cnoa.find_name_by_id(data['fuid']) is None:
-                    user_name = "Me"
-                else:
-                    user_name = self.cnoa.find_name_by_id(data['fuid'])
-                self.chat_display.insertPlainText(user_name + data['posttime'] + data['content'] + "\r\n")
-    
-    def update_recentchat_list(self, recent_list):
-        for rec in recent_list:
-            self.chatlog_list.addItem(QtGui.QListWidgetItem(
-                QtGui.QIcon("user-icon.png"), 
-                self.cnoa.find_name_by_id(rec)))
-
-
-    def update_chatlog_list(self, log_list):
-        self.chatlog_list.addItem("chat kevinsu")
-        self.chatlog_list.addItem("chat linda")
-    
-    def update_user_list(self, user_list):
-        for usr in user_list:
-            self.user_list.addItem(QtGui.QListWidgetItem(
-                QtGui.QIcon("user-icon.png"), usr['text']))
-    
-    def update_group_list(self, group_list):
-        for grp in group_list:
-            self.group_list.addItem(grp['name'])
-    
-    def switch_label(self, label):
-        # right panel is blank 
-        self.content_wid.setCurrentIndex(1)
+        ret = self.cnoa.get_type(item.text())
+        if ret == 1 or ret == 2:
+            self.right_wid.change_widget(2)
+            self.right_wid.update_userinfo(self.cnoa.find_id_by_name(item.text()), item.text())
+        else:
+            self.right_wid.change_widget(0)
         
-        if label is self.chatlog_label:
-            self.chatlog_list.setVisible(True)
-            self.user_list.setVisible(False)
-            self.group_list.setVisible(False)
-            self.chatlog_label.setStyleSheet("QLabel {background-color: green;}")
-            self.userlist_label.setStyleSheet("")
-            self.grouplist_label.setStyleSheet("")
-        elif label is self.userlist_label:
-            self.user_list.setVisible(True)
-            self.chatlog_list.setVisible(False)
-            self.group_list.setVisible(False)
-            self.userlist_label.setStyleSheet("QLabel {background-color: green;}")
-            self.chatlog_label.setStyleSheet("")
-            self.grouplist_label.setStyleSheet("")
-        elif label is self.grouplist_label:
-            self.group_list.setVisible(True)
-            self.chatlog_list.setVisible(False)
-            self.user_list.setVisible(False)
-            self.grouplist_label.setStyleSheet("QLabel {background-color: green;}")
-            self.chatlog_label.setStyleSheet("")
-            self.userlist_label.setStyleSheet("")
-            
-
         self.update()
 
+    def switch_label(self, label):
+        
+        if label is self.chatlog_label:
+            self.left_wid.change_widget(0)
+        elif label is self.userlist_label:
+            self.left_wid.change_widget(1)
+        elif label is self.grouplist_label:
+            self.left_wid.change_widget(2)
+        
+        self.update()
 
     def center(self):
         qr = self.frameGeometry()

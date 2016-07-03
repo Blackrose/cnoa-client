@@ -9,6 +9,7 @@ import logging
 import threading
 import requests
 import operator
+#from signalslot import Signal, Slot
 
 class CNOA():
 
@@ -23,7 +24,7 @@ class CNOA():
             'username':'',
             'uid': ''
             }
-
+     
     
     def __init__(self, notify):
         self.session = requests.Session()
@@ -144,6 +145,9 @@ class CNOA():
         for it in self.contacts_list:
             if name == it['text']:
                 return it['uid']
+        for grp in self.group_list:
+            if grp['name'] == name:
+                return grp['gid']
         return None
 
 
@@ -153,6 +157,27 @@ class CNOA():
                 return True
         return False
     
+    """
+    Return: 0 is none, 1 is user, 2 is group
+    """
+    def get_type(self, obj):
+
+        for it in self.contacts_list:
+            if type(obj) is str or type(obj) is unicode:
+                if obj == it['text']:
+                    return 1
+            elif type(obj) is int:
+                if obj == int(it['uid']):
+                    return 1
+        for grp in self.group_list:
+            if type(obj) is str or type(obj) is unicode:
+                if grp['name'] == obj:
+                    return 2
+            elif type(obj) is int:
+                if int(grp['gid']) == obj:
+                    return 2
+        return 0
+
     def get_noticelist(self):
         get_notice_url = "/api/messagerv2/index.php?action=notice&task=getNoticeList"
 
@@ -253,7 +278,7 @@ class CNOA():
             elif chat_id[5] == '-':
                 chat_id = (chat_id.split('group-'))[1]
                 chat_id = (chat_id.split('.json'))[0]
-            recent_list.append(chat_id)
+            recent_list.append(dict(cid=chat_id, name=self.find_name_by_id(chat_id)))
         print recent_list
         return recent_list
     
