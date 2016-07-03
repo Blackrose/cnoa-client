@@ -37,7 +37,7 @@ class LeftWidget(QtGui.QWidget):
 
     def initUI(self):
         self.setMaximumWidth(100)
-        self.setMinimumWidth(80)
+        self.setMinimumWidth(100)
         
         self.middle_box = QtGui.QStackedLayout()
         self.setLayout(self.middle_box)
@@ -49,6 +49,8 @@ class LeftWidget(QtGui.QWidget):
         self.recentchat_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
         self.user_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
         self.group_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
+        self.recentchat_list.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.user_list.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.group_list.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         
         #self.recentchat_list.setMaximumWidth(80)
