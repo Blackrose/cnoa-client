@@ -410,10 +410,11 @@ class daemon_thread(threading.Thread):
                                     }
                             r = self.cnoa.session.get(self.cnoa.server_url + "/api/messagerv2/?action=file&task=downcomplete", headers=self.cnoa.headers, data=datas)
                             print r
-                            
+                            """ 
                             self.cnoa.notify.write_notify(
                                     self.cnoa.find_name_by_id(it['fuid']), 
                                     file_json['name'])
+                            """
                         elif re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content']):
                             pic_content =  re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content'])
                             #pass
@@ -430,18 +431,18 @@ class daemon_thread(threading.Thread):
                             # get file and save it to local
                             r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url + file_name, headers=self.cnoa.headers, stream=True)
                             self.cnoa.save_picture(file_name, r.content)
-                            
+                            """ 
                             self.cnoa.notify.write_notify(
                                     self.cnoa.find_name_by_id(it['fuid']), 
                                     it['content'])
-                            
+                            """ 
                         elif type(it['content']) is unicode:
                             #print it['content']
-                            
+                            """ 
                             self.cnoa.notify.write_notify(
                                     self.cnoa.find_name_by_id(it['fuid']), 
                                     it['content'])
-                            
+                            """ 
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
                     elif it['type'] == "group":
