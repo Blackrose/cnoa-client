@@ -105,13 +105,13 @@ class CommandLineInterface(cmd.Cmd):
         msg_id = int(line)
         
         msg = raw_input("Please input message :")
-        if cnoa_lib.is_contact(msg_id):
-            cnoa_lib.send_msg(msg_id, msg, "person")
-        elif cnoa_lib.is_group(msg_id):
-            cnoa_lib.send_msg(msg_id, msg, "group")
-        else:
-            print "Your target id is wrong!!"
+        cnoa_lib.send_msg(msg_id, msg, "person")
 
+    def do_sendgroup(self, line):
+        msg_id = int(line)
+        
+        msg = raw_input("Please input message :")
+        cnoa_lib.send_msg(msg_id, msg, "group")
 
     def do_EOF(self, line):
         return True

@@ -425,6 +425,7 @@ class daemon_thread(threading.Thread):
                             file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content[1])
                             # remove ">
                             #file_url = file_url[0][0:len(file_url) - 3]
+                            print file_url
                             file_url = file_url[0] 
                             file_name = file_name[0]
                             print file_url, file_name
