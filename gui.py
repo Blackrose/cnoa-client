@@ -72,13 +72,13 @@ class LeftWidget(QtGui.QWidget):
     def update_chat_list(self, recent_list):
         for rec in recent_list:
             self.recentchat_list.addItem(QtGui.QListWidgetItem(
-                QtGui.QIcon("user-icon.png"), rec['name']))
+                QtGui.QIcon("icons/user-icon.png"), rec['name']))
 
 
     def update_user_list(self, user_list):
         for usr in user_list:
             self.user_list.addItem(QtGui.QListWidgetItem(
-                QtGui.QIcon("user-icon.png"), usr['text']))
+                QtGui.QIcon("icons/user-icon.png"), usr['text']))
     
     def update_group_list(self, group_list):
         for grp in group_list:
@@ -227,12 +227,12 @@ class CNOAWindow(QtGui.QWidget):
         sidebar_layout = QtGui.QGridLayout()
        
         userinfo = QtGui.QLabel()
-        user_logo = QtGui.QPixmap("user-logo.png")
+        user_logo = QtGui.QPixmap("icons/user-logo.png")
         userinfo.setPixmap(user_logo)
 
         # chatlog lable
         self.chatlog_label = ActivityLabel()
-        chat_icon = QtGui.QPixmap("chat-icon.png")
+        chat_icon = QtGui.QPixmap("icons/chat-icon.png")
         self.chatlog_label.setPixmap(chat_icon)
         #self.chatlog_label.setStyleSheet("QLabel {background-color: green;}")
         
@@ -243,13 +243,13 @@ class CNOAWindow(QtGui.QWidget):
 
         # userlist lable
         self.userlist_label = ActivityLabel()
-        user_icon = QtGui.QPixmap("user-icon.png")
+        user_icon = QtGui.QPixmap("icons/user-icon.png")
         self.userlist_label.setPixmap(user_icon)
         self.userlist_label.clicked.connect(self.switch_label)
         
         # grouplist lable
         self.grouplist_label = ActivityLabel()
-        group_icon = QtGui.QPixmap("group-icon.png")
+        group_icon = QtGui.QPixmap("icons/group-icon.png")
         self.grouplist_label.setPixmap(group_icon)
         self.grouplist_label.clicked.connect(self.switch_label)
             
