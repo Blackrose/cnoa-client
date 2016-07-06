@@ -156,6 +156,18 @@ class RightWidget(QtGui.QWidget):
         self.content_wid.addWidget(blank_widget)
         self.content_wid.addWidget(chat_widget)
         self.content_wid.addWidget(userinfo_widget)
+
+        self.dir_watcher = QtCore.QFileSystemWatcher()
+        self.dir_watcher.addPath(os.getcwd() + "/log/user-53.json")
+        self.dir_watcher.directoryChanged.connect(self.dir_update)
+        self.dir_watcher.fileChanged.connect(self.file_update)
+    
+    def dir_update(self, file_path):
+        print "file = ", file_path
+    
+    def file_update(self, content):
+        print "content = ", content
+        self.update_chat_view(53, 1)
     
     def slot_chatto(self):
         self.change_widget(1)
@@ -204,7 +216,7 @@ class RightWidget(QtGui.QWidget):
                     else:
                         self.chat_display.insertPlainText(user_name +
                             data['posttime'] + data['content'] + "\r\n") 
-            
+        self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum()) 
         self.update()    
 
 
