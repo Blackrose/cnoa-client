@@ -250,7 +250,7 @@ class CNOA():
         request = self.session.post(self.server_url + sendmsg_url, \
                 data=msg_data, headers=self.headers)
         msg_data["posttime"] = time.strftime("%Y-%m-%d %H:%M:%S")
-        msg_data["fuid"] = msg_data["id"]
+        msg_data["fuid"] = int(self.personal_info['uid'])
         if msg_type == "group":
             msg_data['gid'] = msg_id
 
@@ -415,23 +415,37 @@ class daemon_thread(threading.Thread):
                                     self.cnoa.find_name_by_id(it['fuid']), 
                                     file_json['name'])
                             """
-                        elif re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content']):
-                            pic_content =  re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content'])
-                            #pass
-                            pic_content = pic_content[0]
-                            print len(pic_content), pic_content 
-                            # recv pictures
-                            file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content[1])
-                            file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content[1])
+                        elif re.findall(r"(\[\^img\^\])", it['content']):
+                            # Handle file and emoji
+                            """
+                            file url: [^img^] src="file/common/imsnapshot/year/month/file_name.jpg">
+                            emoji url: [^img^] src="/resources/images/face_active/file_name.gif">
+                            """
+
+                            msg_body = it['content'] = it['content'].replace('[^img^]', '<img')
+
+                            pic_content =  re.findall(r"(<img src=\"file\/\w*\/\w*\/\w*\/\w*\/.*>)", it['content'])
+                            if len(pic_content):
+                                pic_content = pic_content[0]
+                                print len(pic_content), pic_content 
+                                # recv pictures
+                                file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content[1])
+                                file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content[1])
+                                print re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content'])
+
+                                print file_url
+                                file_url = file_url[0]
+                                file_name = file_name[0]
+                                print file_url, file_name
+                                # get file and save it to local
+                                r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url + file_name, headers=self.cnoa.headers, stream=True)
+                                self.cnoa.save_picture(file_name, r.content)
+                            
+
+                            emoji_list = re.findall(r"<img src=\"\/resources\/images\/face_active\/[a-z].\.gif\">", msg_body)
+
                             # remove ">
                             #file_url = file_url[0][0:len(file_url) - 3]
-                            print file_url
-                            file_url = file_url[0] 
-                            file_name = file_name[0]
-                            print file_url, file_name
-                            # get file and save it to local
-                            r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url + file_name, headers=self.cnoa.headers, stream=True)
-                            self.cnoa.save_picture(file_name, r.content)
                             """ 
                             self.cnoa.notify.write_notify(
                                     self.cnoa.find_name_by_id(it['fuid']), 
