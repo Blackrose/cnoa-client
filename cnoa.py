@@ -122,6 +122,16 @@ class CNOA():
 
         return ddata
     
+    def get_chat_history(self, uid, idtype):
+        history_url = "/api/messagerv2/index.php?action=chat&task=getHistory"
+        form_data = {'type': idtype,
+                "uid": uid}
+
+        request = self.session.post(self.server_url + history_url, \
+                data=form_data, headers=self.headers)
+        history_list = request.text
+        return history_list
+    
     def get_contacts_list(self):
         return self.contacts_list
 

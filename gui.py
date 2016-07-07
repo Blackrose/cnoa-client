@@ -156,12 +156,12 @@ class RightWidget(QtGui.QWidget):
         self.content_wid.addWidget(blank_widget)
         self.content_wid.addWidget(chat_widget)
         self.content_wid.addWidget(userinfo_widget)
-
+        """
         self.dir_watcher = QtCore.QFileSystemWatcher()
-        self.dir_watcher.addPath(os.getcwd() + "/log/user-53.json")
+        self.dir_watcher.addPath(os.getcwd() + "/log/")
         self.dir_watcher.directoryChanged.connect(self.dir_update)
         self.dir_watcher.fileChanged.connect(self.file_update)
-    
+        """ 
     def dir_update(self, file_path):
         print "file = ", file_path
     
