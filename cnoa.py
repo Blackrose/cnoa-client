@@ -429,11 +429,9 @@ class daemon_thread(threading.Thread):
                                 pic_content = pic_content[0]
                                 print len(pic_content), pic_content 
                                 # recv pictures
-                                file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content[1])
-                                file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content[1])
-                                print re.findall(r"(\[\^img\^\]).(src\=\".*\")(>)", it['content'])
+                                file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content)
+                                file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content)
 
-                                print file_url
                                 file_url = file_url[0]
                                 file_name = file_name[0]
                                 print file_url, file_name
