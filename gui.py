@@ -7,6 +7,7 @@ import operator
 from PySide import QtGui, QtCore
 import cnoa
 import dbus
+from blinker import signal
 
 class ActivityLabel(QtGui.QLabel):
     clicked = QtCore.Signal(object)
@@ -30,13 +31,46 @@ class TextInputWidget(QtGui.QTextEdit):
             self.clear()
 
         return QtGui.QTextEdit.keyPressEvent(self, event)
+
+class BuddyInfo(QtGui.QWidget):
+    def __init__(self):
+        super(BuddyInfo, self).__init__()
+        #QtGui.QWidget.__init__(self)
+        self.initUI()
+    
+    def initUI(self):
+        mbox = QtGui.QHBoxLayout()
+        self.head = QtGui.QLabel()
+        self.name = QtGui.QLabel()
+        self.uid = 0
+
+        pixmap = QtGui.QPixmap("icons/user-icon.png")
+        self.head.setPixmap(pixmap)
+        #self.head.move(7,7)
+        #self.name.move(54,10)
+        #self.uid.move(54,27)
+        mbox.addWidget(self.head)
+        mbox.addWidget(self.name)
+
+        
+        #self.setFixedSize(40, 60)
+        self.setLayout(mbox)
+
+    def set_info(self, name, uid):
+        self.name.setText(name)
+        self.uid = uid
+
+    def get_info(self):
+        return int(self.uid.Text()), self.name.Text()
+
+
 class LeftWidget(QtGui.QWidget):
     def __init__(self):
         QtGui.QWidget.__init__(self)
         self.initUI()
 
     def initUI(self):
-        self.setMaximumWidth(100)
+        self.setMaximumWidth(150)
         self.setMinimumWidth(100)
         
         self.middle_box = QtGui.QStackedLayout()
@@ -47,7 +81,7 @@ class LeftWidget(QtGui.QWidget):
         self.group_list = QtGui.QListWidget()
 
         self.recentchat_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
-        self.user_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
+        self.user_list.setStyleSheet("QListWidget{border: none;background-color: transparent;} QListWidget::item{height: 54px;}")
         self.group_list.setStyleSheet("QListWidget{border: none;background-color: transparent;}")
         self.recentchat_list.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.user_list.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
@@ -77,6 +111,13 @@ class LeftWidget(QtGui.QWidget):
 
     def update_user_list(self, user_list):
         for usr in user_list:
+            """
+            buddy = BuddyInfo()
+            buddy.set_info(usr['text'], "1")
+            item = QtGui.QListWidgetItem()
+            self.user_list.addItem(item)
+            self.user_list.setItemWidget(item, buddy)
+            """
             self.user_list.addItem(QtGui.QListWidgetItem(
                 QtGui.QIcon("icons/user-icon.png"), usr['text']))
     
@@ -89,6 +130,11 @@ class LeftWidget(QtGui.QWidget):
 
 
 class RightWidget(QtGui.QWidget):
+    chat_state = {
+            "ischat": False,
+            "uid": 0,
+            "uname": ""
+            }
     def __init__(self):
         #super(RightWidget, self).__init__()
         QtGui.QWidget.__init__(self)
@@ -103,6 +149,7 @@ class RightWidget(QtGui.QWidget):
         chat_layout = QtGui.QGridLayout()
         self.chat_display = QtGui.QTextEdit()
         self.chat_label = QtGui.QLabel()
+
         self.chat_label.setFixedHeight(40)
         self.chat_display.setReadOnly(True)
         self.chat_edit = TextInputWidget()
@@ -156,28 +203,30 @@ class RightWidget(QtGui.QWidget):
         self.content_wid.addWidget(blank_widget)
         self.content_wid.addWidget(chat_widget)
         self.content_wid.addWidget(userinfo_widget)
-        """
-        self.dir_watcher = QtCore.QFileSystemWatcher()
-        self.dir_watcher.addPath(os.getcwd() + "/log/")
-        self.dir_watcher.directoryChanged.connect(self.dir_update)
-        self.dir_watcher.fileChanged.connect(self.file_update)
-        """ 
-    def dir_update(self, file_path):
-        print "file = ", file_path
-    
-    def file_update(self, content):
-        print "content = ", content
-        self.update_chat_view(53, 1)
+        
+    def file_update(self, uid):
+        print "content = ", uid
+        self.update_chat_view(uid, 1)
     
     def slot_chatto(self):
+        
+        self.chat_state['ischat'] = True
+        self.chat_state['uname'] = self.userinfo_username_val.text()
+        self.chat_state['uid'] = int(self.userinfo_userid_val.text())
+        
         self.change_widget(1)
         self.chat_label.setText(self.userinfo_username_val.text())
         self.update_chat_view(int(self.userinfo_userid_val.text()), 1)
 
     def chating(self, name, cid, ctype):
+        self.chat_state['ischat'] = True
+        self.chat_state['uname'] = name
+        self.chat_state['uid'] = cid
+        
         self.change_widget(1)
         self.chat_label.setText(name)
         self.update_chat_view(cid, ctype)
+        
 
     def update_userinfo(self, uid, uname):
         self.userinfo_username_val.setText(uname)
@@ -185,6 +234,9 @@ class RightWidget(QtGui.QWidget):
         self.update()
     
     def change_widget(self, idx):
+        if idx == 0 or idx == 2:
+            self.chat_state['ischat'] = False
+
         self.content_wid.setCurrentIndex(idx)
 
     def update_chat_view(self, cid, ctype):
@@ -194,10 +246,12 @@ class RightWidget(QtGui.QWidget):
             file_path += "user-" + str(cid) + ".json"
         elif ctype == 2:
             file_path += "group-" + str(cid) + ".json"
+        else:
+            self.chat_state['ischat'] = False
 
         if os.path.isfile(file_path):
-            print file_path 
-
+            print file_path, self.chat_state 
+            
             fp = open(file_path)
             for line in fp.readlines():
                 if line != "":
@@ -216,8 +270,9 @@ class RightWidget(QtGui.QWidget):
                     else:
                         self.chat_display.insertPlainText(user_name +
                             data['posttime'] + data['content'] + "\r\n") 
-        self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum()) 
-        self.update()    
+        self.chat_display.verticalScrollBar().setValue(self.chat_display.verticalScrollBar().maximum())
+            
+        self.update()
 
 
 class CNOAWindow(QtGui.QWidget):
@@ -289,6 +344,7 @@ class CNOAWindow(QtGui.QWidget):
         mbox.addWidget(self.right_wid)
         
         self.right_wid.chat_edit.commited.connect(self.slot_sendmsg)
+        self.cnoa.log_updated.connect(self.right_wid.file_update)
 
         self.setLayout(mbox)
 
@@ -312,8 +368,8 @@ class CNOAWindow(QtGui.QWidget):
         
         ret = self.cnoa.get_type(item.text())
         if ret == 1 or ret == 2:
-            self.right_wid.change_widget(2)
             self.right_wid.update_userinfo(self.cnoa.find_id_by_name(item.text()), item.text())
+            self.right_wid.change_widget(2)
         else:
             self.right_wid.change_widget(0)
         

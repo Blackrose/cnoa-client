@@ -9,10 +9,10 @@ import logging
 import threading
 import requests
 import operator
-#from signalslot import Signal, Slot
+from blinker import signal
 
 class CNOA():
-
+    log_updated = signal("log_updated")
     user_agent = 'Mozilla/5.0 (Windows; U; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) AdobeAIR/18.0'
     headers = {'User-Agent': user_agent}
 
@@ -293,8 +293,9 @@ class CNOA():
         return recent_list
     
     def save_message(self, msg):
+
+        uid = ""
         if msg['type'] == "person":
-            uid = ""
             if msg.has_key("fname"):
                 uid = msg['fuid']
             elif msg.has_key("id"):
@@ -308,6 +309,7 @@ class CNOA():
             f.write(json.dumps(msg))
             f.write("\n")
             f.close()
+        self.log_updated.send(int(uid))
 
     def send_file(self, uid, file_path):
         sendfile_url = "/api/messagerv2/?action=file&task=upload&uid=" + uid
@@ -460,7 +462,7 @@ class daemon_thread(threading.Thread):
                                     it['content'])
                             """ 
                         elif type(it['content']) is unicode:
-                            #print it['content']
+                            print it['content']
                             """ 
                             self.cnoa.notify.write_notify(
                                     self.cnoa.find_name_by_id(it['fuid']), 
