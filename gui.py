@@ -7,6 +7,7 @@ import operator
 from PySide import QtGui, QtCore
 import cnoa
 import dbus
+import pdb
 from blinker import signal
 
 class ActivityLabel(QtGui.QLabel):
@@ -20,7 +21,8 @@ class ActivityLabel(QtGui.QLabel):
 class TextInputWidget(QtGui.QTextEdit):
     commited = QtCore.Signal(str)
     def __init__(self):
-        QtGui.QTextEdit.__init__(self)
+        super(TextInputWidget, self).__init__()
+        #QtGui.QTextEdit.__init__(self)
     def keyPressEvent(self, event):
         modifiers = QtGui.QApplication.keyboardModifiers()
         if modifiers & QtCore.Qt.ControlModifier and \
@@ -66,7 +68,8 @@ class BuddyInfo(QtGui.QWidget):
 
 class LeftWidget(QtGui.QWidget):
     def __init__(self):
-        QtGui.QWidget.__init__(self)
+        super(LeftWidget, self).__init__()
+        #QtGui.QWidget.__init__(self)
         self.initUI()
 
     def initUI(self):
@@ -136,8 +139,8 @@ class RightWidget(QtGui.QWidget):
             "uname": ""
             }
     def __init__(self):
-        #super(RightWidget, self).__init__()
-        QtGui.QWidget.__init__(self)
+        super(RightWidget, self).__init__()
+        #QtGui.QWidget.__init__(self)
         self.initUI()
     
     def initUI(self):
@@ -240,6 +243,7 @@ class RightWidget(QtGui.QWidget):
         self.content_wid.setCurrentIndex(idx)
 
     def update_chat_view(self, cid, ctype):
+        pdb.set_trace()
         self.chat_display.clear()
         file_path = "log/"
         if ctype == 1:
