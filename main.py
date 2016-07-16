@@ -42,6 +42,9 @@ class CommandLineInterface(cmd.Cmd):
     
     def help_help(self):
         print "showlist - show current contacts list"
+    
+    def emptyline(self):
+        pass
 
     def do_grouplist(self, line):
         for grp in cnoa_lib.get_group_list():
