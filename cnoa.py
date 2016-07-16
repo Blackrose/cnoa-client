@@ -392,6 +392,8 @@ class daemon_thread(threading.Thread):
             if data.has_key("ol"):
                 online_status =  data["ol"]
                 #print online_status
+                for i in self.cnoa.contacts_list:
+                    i["iconCls"] = "icon-tree-im-offline"
                 for p in online_status:
                     for i in self.cnoa.contacts_list:
                         if p[0] == i["uid"]:
