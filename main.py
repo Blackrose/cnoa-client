@@ -66,7 +66,12 @@ class CommandLineInterface(cmd.Cmd):
         file_mtime.sort(key=operator.itemgetter('file_mtime'), reverse=True)
         print file_mtime
         #print log_files
-        idx = int(raw_input("choose one:"))
+        input_str = raw_input("choose one:")
+        if input_str == '':
+            return
+        else:
+            idx = int(input_str)
+
         fp = open(dir_path + file_mtime[idx]['file_path'])
         for line in fp.readlines():
             if line != "":
