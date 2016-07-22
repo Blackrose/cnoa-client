@@ -305,6 +305,7 @@ class CNOA():
             f.write("\n")
             f.close()
         elif msg['type'] == "group":
+            uid = str(msg['gid'])
             f = open("log/group-" + str(msg['gid']) + ".json", "a+")
             f.write(json.dumps(msg))
             f.write("\n")
