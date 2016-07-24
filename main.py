@@ -33,7 +33,7 @@ msg_list = []
 
 class CommandLineInterface(cmd.Cmd):
     global server_url, scan_url, headers, cnoa_lib
-    
+    prompt = "CNOA CLI>"
     def do_userlist(self, line):
         """
         display all users as a list
@@ -41,7 +41,7 @@ class CommandLineInterface(cmd.Cmd):
         #print contacts_list
         contacts_list = cnoa_lib.get_contacts_list()
         for p in contacts_list:
-            print "%s %s - %s" % (p['uid'], p['text'], p['iconCls'])
+            print "uid=%s \tname=%s \tstatus %s" % (p['uid'], p['text'], p['iconCls'])
     
     def help_help(self):
         print "help [command] will get more info for each command usage"
@@ -78,10 +78,15 @@ class CommandLineInterface(cmd.Cmd):
                     dict(file_mtime=int(os.stat(dir_path + fp).st_mtime),
                 file_path=fp))
         file_mtime.sort(key=operator.itemgetter('file_mtime'), reverse=True)
-        print file_mtime
+        for idx in range(0, len(file_mtime)):
+            print "index = %d, %s " %(idx, file_mtime[idx]['file_path'])
         #print log_files
         input_str = raw_input("choose one:")
-        if input_str == '':
+        if not input_str:
+            print "You need choose an option by index!"
+            return
+        elif int(input_str) > (len(file_mtime) - 1):
+            print "You need choose an option by index!"
             return
         else:
             idx = int(input_str)
@@ -108,6 +113,9 @@ class CommandLineInterface(cmd.Cmd):
         sendfile [user_id]
         send file to user
         """
+        if not line:
+            print "You need input user id!"
+            return
         file_path = raw_input("Please input file path:")
 
         cnoa_lib.send_file(line, file_path)
@@ -135,6 +143,9 @@ class CommandLineInterface(cmd.Cmd):
         senduser [user_id]
         send message to user
         """
+        if not line:
+            print "You need input an user id!"
+            return
         msg_id = int(line)
         
         msg = raw_input("Please input message :")
@@ -145,6 +156,9 @@ class CommandLineInterface(cmd.Cmd):
         sendgroup [group_id]
         send message to group
         """
+        if not line:
+            print "You need input an group id!"
+            return
         msg_id = int(line)
         
         msg = raw_input("Please input message :")

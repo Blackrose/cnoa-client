@@ -167,6 +167,12 @@ class CNOA():
                 return True
         return False
     
+    def is_user(self, uid):
+        for user in self.contacts_list:
+            if int(user['uid']) == uid:
+                return True
+        return False
+
     """
     Return: 0 is none, 1 is user, 2 is group
     """
@@ -246,6 +252,9 @@ class CNOA():
         msg : message content
         msg_type : "person" or "group"
         """
+        if not msg_id or not is_user(msg_id) or not is_group(msg_id):
+            print "The user/group id doesn't exist!"
+            return
         sendmsg_url = "/api/messagerv2/index.php?action=chat&task=send"
 
         msg_data = {"id": msg_id,
@@ -311,7 +320,12 @@ class CNOA():
         """
         Send file to user
         """
-
+        if not uid or not self.is_user(int(uid)):
+            print "The user id doesn't exist!"
+            return
+        if not os.path.exists(file_path):
+            print "The file doesn't exist!"
+            return
         sendfile_url = "/api/messagerv2/?action=file&task=upload&uid=" + uid
         filename = os.path.basename(file_path)
         """
