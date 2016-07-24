@@ -54,6 +54,10 @@ class CommandLineInterface(cmd.Cmd):
         cnoa_lib.get_group_memberlist(line)
     
     def do_chatlog(self, line):
+        """
+        list recently chat logs
+        It will order by date.
+        """
         prefix = ""
         dir_path = "log/"
         log_files = os.listdir(dir_path)
@@ -109,7 +113,7 @@ class CommandLineInterface(cmd.Cmd):
         elif msg_list[msg_id]['type'] == "group":
             cnoa_lib.send_msg(msg_list[msg_id]['gid'], msg, "group")
 
-    def do_sendmsg(self, line):
+    def do_senduser(self, line):
         msg_id = int(line)
         
         msg = raw_input("Please input message :")

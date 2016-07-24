@@ -239,18 +239,13 @@ class CNOA():
         elif ret_json.has_key("failure"):
             print ret_json['msg']
 
-# --------------------------------
-##
-# @Synopsis send message to person or group
-#
-# @Param session : http client session key
-# @Param msg_id : id of message to people or group
-# @Param msg : message content
-# @Param msg_type : "person" pr "group"
-#
-# @Returns 
-# --------------------------------
     def send_msg(self, msg_id, msg, msg_type):
+        """
+        send message to person or group
+        msg_id : id of message to people or group
+        msg : message content
+        msg_type : "person" or "group"
+        """
         sendmsg_url = "/api/messagerv2/index.php?action=chat&task=send"
 
         msg_data = {"id": msg_id,
@@ -313,6 +308,9 @@ class CNOA():
         self.log_updated.send(int(uid))
 
     def send_file(self, uid, file_path):
+        """
+        Send file to user
+        """
         sendfile_url = "/api/messagerv2/?action=file&task=upload&uid=" + uid
         filename = os.path.basename(file_path)
         """
