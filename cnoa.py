@@ -13,6 +13,7 @@ from blinker import signal
 
 class CNOA():
     log_updated = signal("log_updated")
+    notify = signal("notify")
     user_agent = 'Mozilla/5.0 (Windows; U; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) AdobeAIR/18.0'
     headers = {'User-Agent': user_agent}
 
@@ -26,23 +27,23 @@ class CNOA():
             }
      
     
-    def __init__(self, notify):
+    def __init__(self, notify=None):
         self.session = requests.Session()
         
         FORMAT = '%(asctime)s %(message)s'
     
         logging.basicConfig(filename='cnoa.log', format=FORMAT)
         logging.getLogger().setLevel(logging.DEBUG)
-        requests_log = logging.getLogger("requests.packages.urllib3")
-        requests_log.setLevel(logging.DEBUG)
-        requests_log.propagate = True
+        self.loger = logging.getLogger("requests.packages.urllib3")
+        self.loger.setLevel(logging.DEBUG)
+        self.loger.propagate = True
         
         self.contacts_list = []
         self.group_list = []
         self.grp_memberlist = []
         self.msg_list = []
         self.server_url = ""
-        self.notify = notify
+        #self.notify = notify
         
         self.load_config()    
         
@@ -50,6 +51,10 @@ class CNOA():
 
     def __del__(self):
         self.daemon.stop()
+
+    def send_notify(self, title, content):
+        #print title, content
+        self.notify.send(self, title=title, content=content)
 
     def load_config(self):
         f = codecs.open("config.json")
@@ -142,11 +147,13 @@ class CNOA():
         return False
         
     def find_name_by_id(self, id_no):
-        #print contacts_list
-        if type(id_no) is str:
-            id_no = int(id_no)
+        if not (type(id_no) is int):
+            uid = int(id_no)
+        else:
+            uid = id_no
         for it in self.contacts_list:
-            if id_no == int(it['uid']):
+            #print "%r, %r" %(uid, it)
+            if uid == int(it['uid']):
                 return it['text']
         return None
     
@@ -402,7 +409,7 @@ class daemon_thread(threading.Thread):
             except ValueError, e:
                 continue
             #print data
-            logging.info(data)
+            self.cnoa.loger.debug(data)
             if data.has_key("ol"):
                 online_status =  data["ol"]
                 #print online_status
@@ -417,8 +424,7 @@ class daemon_thread(threading.Thread):
                 msg = data.get("hh")
                 for it in msg:
                     if it['type'] == "person":
-                        print "%s" % it
-                        #print type(it['content'])
+                        self.cnoa.loger.debug("%r", it)
                          
                         if type(it['content']) is dict:
                             # recv files
@@ -478,16 +484,15 @@ class daemon_thread(threading.Thread):
                                     it['content'])
                             """ 
                         elif type(it['content']) is unicode:
-                            print it['content']
-                            """ 
-                            self.cnoa.notify.write_notify(
-                                    self.cnoa.find_name_by_id(it['fuid']), 
-                                    it['content'])
-                            """ 
+                            #print it['fuid'], it['content']
+                            uname = self.cnoa.find_name_by_id(it['fuid'])
+                            print "[ReceiveMSG] %s: %s" %(uname, it['content'])
+                            self.cnoa.send_notify(uname, it['content'])
+                         
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
                     elif it['type'] == "group":
-                        print it
+                        self.cnoa.loger.debug(it)
                         #print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
                         
                         file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
@@ -495,7 +500,7 @@ class daemon_thread(threading.Thread):
                             file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", file_url[0])
                             # remove ">
                             file_url = file_url[0][0:len(file_url) - 3]
-                            print file_url, file_name
+                            print "[ReceiveFile] %s: %s" %(file_url, file_name)
                         
                             # get file and save it to local
                             r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url, headers=self.cnoa.headers, stream=True)

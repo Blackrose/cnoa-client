@@ -171,11 +171,12 @@ class KNotify:
     knotify = None
     def __init__(self):
         self.knotify = dbus.SessionBus().get_object("org.kde.knotify", "/Notify")
-    def write_notify(self, title, text):
-        #print title, text
+    def write_notify(self, sender, **kw):
+        title = kw['title']
+        content = kw['content']
+        #print "%r, %r" %(sender, kw)
         self.knotify.event("warning", "kde", [], title, 
-                text, [], [], 0, 0,
-                dbus_interface="org.kde.KNotify")
+                content, [], [], 0, 0, dbus_interface="org.kde.KNotify")
 
 if __name__ == '__main__':
 
@@ -183,6 +184,7 @@ if __name__ == '__main__':
     
     cnoa_lib = cnoa.CNOA(notify)
     #cnoa_lib.load_config()
+    cnoa_lib.notify.connect(notify.write_notify)
 
     if not cnoa_lib.login():
         sys.exit()
