@@ -34,29 +34,39 @@ msg_list = []
 class CommandLineInterface(cmd.Cmd):
     global server_url, scan_url, headers, cnoa_lib
     
-    def do_showlist(self, line):
+    def do_userlist(self, line):
+        """
+        display all users as a list
+        """
         #print contacts_list
         contacts_list = cnoa_lib.get_contacts_list()
         for p in contacts_list:
             print "%s %s - %s" % (p['uid'], p['text'], p['iconCls'])
     
     def help_help(self):
-        print "showlist - show current contacts list"
+        print "help [command] will get more info for each command usage"
     
     def emptyline(self):
         pass
 
     def do_grouplist(self, line):
+        """
+        display all groups as a list
+        """
         for grp in cnoa_lib.get_group_list():
             print "gid: %s name: %s" % (grp['gid'], grp['name'])
 
     def do_memberlist(self, line):
+        """
+        memberlist [group_id]
+        display members of group, you need input group id
+        """
         cnoa_lib.get_group_memberlist(line)
     
     def do_chatlog(self, line):
         """
-        list recently chat logs
-        It will order by date.
+        chatlog [user_id]
+        list recently chat logs, and it will order by date.
         """
         prefix = ""
         dir_path = "log/"
@@ -94,11 +104,18 @@ class CommandLineInterface(cmd.Cmd):
                 print "{MSG No%d} [%s - %s] %s\r\n%s\r\n" % (i, it['gid'], cnoa_lib.find_name_by_id(it['fuid']), it['posttime'], it['content'])
             i += 1
     def do_sendfile(self, line):
+        """
+        sendfile [user_id]
+        send file to user
+        """
         file_path = raw_input("Please input file path:")
 
         cnoa_lib.send_file(line, file_path)
 
     def do_checkin(self, line):
+        """
+        checkin to OA system
+        """
         cnoa_lib.check_in()
 
     def do_reply(self, line):
@@ -114,12 +131,20 @@ class CommandLineInterface(cmd.Cmd):
             cnoa_lib.send_msg(msg_list[msg_id]['gid'], msg, "group")
 
     def do_senduser(self, line):
+        """
+        senduser [user_id]
+        send message to user
+        """
         msg_id = int(line)
         
         msg = raw_input("Please input message :")
         cnoa_lib.send_msg(msg_id, msg, "person")
 
     def do_sendgroup(self, line):
+        """
+        sendgroup [group_id]
+        send message to group
+        """
         msg_id = int(line)
         
         msg = raw_input("Please input message :")

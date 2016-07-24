@@ -311,6 +311,7 @@ class CNOA():
         """
         Send file to user
         """
+
         sendfile_url = "/api/messagerv2/?action=file&task=upload&uid=" + uid
         filename = os.path.basename(file_path)
         """
