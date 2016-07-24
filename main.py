@@ -163,6 +163,36 @@ class CommandLineInterface(cmd.Cmd):
         
         msg = raw_input("Please input message :")
         cnoa_lib.send_msg(msg_id, msg, "group")
+    
+    def do_creategroup(self, line):
+        """
+        creategroup
+        Create an group
+        """
+        grp_name = raw_input("Please input the name of group:")
+        grp_user_list = raw_input("Please input user list of group(input likes, 1,2):")
+        grp_user_list = grp_user_list.split(',')
+        cnoa_lib.create_group(grp_name, grp_user_list)
+    
+    def do_removegroup(self, line):
+        """
+        removegroup [group-id]
+        Delete an group, all members will be clean
+        """
+        if not line:
+            print "You need input an group id"
+            return
+        cnoa_lib.remove_group(line)
+    
+    def do_quitgroup(self, line):
+        """
+        quitgroup [group-id]
+        Quit from an group
+        """
+        if not line:
+            print "You need input an group id"
+            return
+        cnoa_lib.quit_group(line)
 
     def do_EOF(self, line):
         return True

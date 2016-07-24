@@ -145,7 +145,19 @@ class CNOA():
             if uid == int(it['uid']):
                 return True
         return False
-        
+     
+    def find_name_by_gid(self, gid_no):
+        if not (type(gid_no) is int):
+            guid = int(gid_no)
+        else:
+            guid = gid_no
+        for it in self.group_list:
+            #print "%r, %r" %(uid, it)
+            if guid == int(it['gid']):
+                return it['name']
+        return None
+    
+   
     def find_name_by_id(self, id_no):
         if not (type(id_no) is int):
             uid = int(id_no)
@@ -356,7 +368,7 @@ class CNOA():
 
     def fetch_group_list(self):
         get_grouplist_url = "/api/messagerv2/index.php?action=group&task=getList"
-
+        del self.group_list[:]
         request = self.session.get(self.server_url + get_grouplist_url,\
                 headers=self.headers)
         group_json = json.loads(request.text)
@@ -366,6 +378,68 @@ class CNOA():
     
     def get_group_list(self):
         return self.group_list
+    
+    def create_group(self, name, user_list):
+        create_group_url = "/api/messagerv2/index.php?action=group&task=addedit"
+        user_list = json.dumps(user_list)
+        group_data = {
+                'uids': user_list,
+                'gid': "0",
+                'type': "add",
+                'name': name
+                }
+        print group_data
+        request = self.session.post(self.server_url + \
+                create_group_url, \
+                headers=self.headers, data=group_data)
+        ret = json.loads(request.text)
+        print ret['msg']
+        self.fetch_group_list()
+        if ret.has_key('success'):
+            return True
+        elif ret.has_key('failure'):
+            return False
+    
+    def remove_group(self, gid):
+        """
+        Remove an group
+        gid : str
+        """
+        remove_group_url = "/api/messagerv2/index.php?action=group&task=remove"
+        group_data = {
+                'gid': gid
+                }
+        request = self.session.post(self.server_url + \
+                remove_group_url, \
+                headers=self.headers, data=group_data)
+        ret = json.loads(request.text)
+        print ret
+        print ret['msg']
+        self.fetch_group_list()
+        if ret.has_key('success'):
+            return True
+        elif ret.has_key('failure'):
+            return False
+    
+    def quit_group(self, gid):
+        """
+        Quit form an group
+        gid : str
+        """
+        remove_group_url = "/api/messagerv2/index.php?action=group&task=quit"
+        group_data = {
+                'gid': gid
+                }
+        request = self.session.post(self.server_url + \
+                remove_group_url, \
+                headers=self.headers, data=group_data)
+        ret = json.loads(request.text)
+        self.fetch_group_list()
+        print ret['msg']
+        if ret.has_key('success'):
+            return True
+        elif ret.has_key('failure'):
+            return False
 
     def get_group_memberlist(self, gid):
         get_group_memberlist_url = "/api/messagerv2/index.php?action=group&task=loadMemberList"
@@ -494,7 +568,7 @@ class daemon_thread(threading.Thread):
                     elif it['type'] == "group":
                         self.cnoa.loger.debug(it)
                         #print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
-                        
+                        gname = self.cnoa.find_name_by_gid(it['gid'])
                         file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
                         if file_url:
                             file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", file_url[0])
@@ -506,6 +580,8 @@ class daemon_thread(threading.Thread):
                             r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url, headers=self.cnoa.headers, stream=True)
                             self.cnoa.save_picture(file_name[0], r.content)
 
+                        self.cnoa.send_notify(gname, it['content'])
+                        print "[ReceiveMSG] %s: %s" %(gname, it['content'])
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
             elif data.has_key("xx"):
