@@ -271,8 +271,14 @@ class CNOA():
         msg : message content
         msg_type : "person" or "group"
         """
-        if not msg_id or not is_user(msg_id) or not is_group(msg_id):
-            print "The user/group id doesn't exist!"
+        if not msg_id:
+            print "The user/group id is needed!"
+            return
+        elif not self.is_user(int(msg_id)) and msg_type == "person":
+            print "The user id doesn't exist!"
+            return
+        elif not self.is_group(int(msg_id)) and msg_type == "group":
+            print "The group id doesn't exist!"
             return
         sendmsg_url = "/api/messagerv2/index.php?action=chat&task=send"
 
