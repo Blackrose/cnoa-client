@@ -65,6 +65,7 @@ class CNOA():
         self.login_data['username'] = user_data['user_name'].encode('utf-8')
         self.login_data['password'] = user_data['user_password']
         self.login_data['serverurl'] = user_data['server_address']
+        self.login_data['serverport'] = user_data['server_port']
     
         if not os.path.exists(os.getcwd() + "/log"):
             os.makedirs(os.getcwd() + "/log")
@@ -75,9 +76,12 @@ class CNOA():
 
     def login(self):
         login_url = "/api/messagerv2/index.php?action=login&task=login"
-        r = self.session.get(self.login_data['serverurl'] + "/i/", \
-                headers=self.headers, stream=True)
-        self.server_url = r.text
+        if not self.login_data['serverport']:
+            r = self.session.get(self.login_data['serverurl'] + "/i/", \
+                    headers=self.headers, stream=True)
+            self.server_url = r.text
+        else:
+            self.server_url = self.login_data['serverurl'] + ':' + self.login_data['serverport']
         print "Real Server IP : %s" % (self.server_url)
         r = self.session.post(self.server_url + login_url, \
                 data=self.login_data, headers=self.headers, stream=True)
