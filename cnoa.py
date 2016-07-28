@@ -505,6 +505,7 @@ class daemon_thread(threading.Thread):
                 for it in msg:
                     if it['type'] == "person":
                         self.cnoa.loger.debug("%r", it)
+                        self.cnoa.loger.debug("%s", it['content'])
                          
                         if type(it['content']) is dict:
                             # recv files
@@ -586,8 +587,9 @@ class daemon_thread(threading.Thread):
                             r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url, headers=self.cnoa.headers, stream=True)
                             self.cnoa.save_picture(file_name[0], r.content)
 
-                        self.cnoa.send_notify(gname, it['content'])
+                        self.cnoa.loger.debug("%s %s" %(gname, it['content']))
                         print "[ReceiveMSG] %s: %s" %(gname, it['content'])
+                        self.cnoa.send_notify(gname, it['content'])
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
             elif data.has_key("xx"):
