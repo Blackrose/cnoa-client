@@ -65,6 +65,7 @@ class CNOA():
         self.login_data['username'] = user_data['user_name'].encode('utf-8')
         self.login_data['password'] = user_data['user_password']
         self.login_data['serverurl'] = user_data['server_address']
+        self.login_data['serverport'] = user_data['server_port']
     
         if not os.path.exists(os.getcwd() + "/log"):
             os.makedirs(os.getcwd() + "/log")
@@ -75,9 +76,12 @@ class CNOA():
 
     def login(self):
         login_url = "/api/messagerv2/index.php?action=login&task=login"
-        r = self.session.get(self.login_data['serverurl'] + "/i/", \
-                headers=self.headers, stream=True)
-        self.server_url = r.text
+        if not self.login_data['serverport']:
+            r = self.session.get(self.login_data['serverurl'] + "/i/", \
+                    headers=self.headers, stream=True)
+            self.server_url = r.text
+        else:
+            self.server_url = self.login_data['serverurl'] + ':' + self.login_data['serverport']
         print "Real Server IP : %s" % (self.server_url)
         r = self.session.post(self.server_url + login_url, \
                 data=self.login_data, headers=self.headers, stream=True)
@@ -271,8 +275,14 @@ class CNOA():
         msg : message content
         msg_type : "person" or "group"
         """
-        if not msg_id or not is_user(msg_id) or not is_group(msg_id):
-            print "The user/group id doesn't exist!"
+        if not msg_id:
+            print "The user/group id is needed!"
+            return
+        elif not self.is_user(int(msg_id)) and msg_type == "person":
+            print "The user id doesn't exist!"
+            return
+        elif not self.is_group(int(msg_id)) and msg_type == "group":
+            print "The group id doesn't exist!"
             return
         sendmsg_url = "/api/messagerv2/index.php?action=chat&task=send"
 
@@ -499,6 +509,7 @@ class daemon_thread(threading.Thread):
                 for it in msg:
                     if it['type'] == "person":
                         self.cnoa.loger.debug("%r", it)
+                        self.cnoa.loger.debug("%s", it['content'])
                          
                         if type(it['content']) is dict:
                             # recv files
@@ -580,8 +591,9 @@ class daemon_thread(threading.Thread):
                             r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url, headers=self.cnoa.headers, stream=True)
                             self.cnoa.save_picture(file_name[0], r.content)
 
-                        self.cnoa.send_notify(gname, it['content'])
+                        self.cnoa.loger.debug("%s %s" %(gname, it['content']))
                         print "[ReceiveMSG] %s: %s" %(gname, it['content'])
+                        self.cnoa.send_notify(gname, it['content'])
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
             elif data.has_key("xx"):
