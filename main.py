@@ -7,7 +7,9 @@ import threading
 import os
 import sys
 import operator
-import dbus
+import platform
+if platform.system() == "Linux":
+    import dbus
 
 from PySide import QtGui, QtCore
 import cnoa
@@ -209,12 +211,14 @@ class KNotify:
                 content, [], [], 0, 0, dbus_interface="org.kde.KNotify")
 
 if __name__ == '__main__':
-
-    notify = KNotify()
+    notify = None
+    if platform.system() == "Linux":
+        notify = KNotify()
     
     cnoa_lib = cnoa.CNOA(notify)
     #cnoa_lib.load_config()
-    cnoa_lib.notify.connect(notify.write_notify)
+    if platform.system() == "Linux":
+        cnoa_lib.notify.connect(notify.write_notify)
 
     if not cnoa_lib.login():
         sys.exit()

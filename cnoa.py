@@ -13,8 +13,9 @@ from blinker import signal
 
 class CNOA():
     log_updated = signal("log_updated")
-    notify = signal("notify")
-    user_agent = 'Mozilla/5.0 (Windows; U; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) AdobeAIR/18.0'
+    sig_recv_msg = signal("recv_msg")
+    user_agent = "Mozilla/5.0 (Windows; U; en-US) " \
+            "AppleWebKit/533.19.4 (KHTML, like Gecko) AdobeAIR/18.0"
     headers = {'User-Agent': user_agent}
 
     login_data = {'username': '',
@@ -43,7 +44,6 @@ class CNOA():
         self.grp_memberlist = []
         self.msg_list = []
         self.server_url = ""
-        #self.notify = notify
         
         self.load_config()    
         
@@ -52,9 +52,9 @@ class CNOA():
     def __del__(self):
         self.daemon.stop()
 
-    def send_notify(self, title, content):
+    def emit_recv_msg(self, title, content):
         #print title, content
-        self.notify.send(self, title=title, content=content)
+        self.sig_recv_msg.send(self, title=title, content=content)
 
     def load_config(self):
         f = codecs.open("config.json")
@@ -94,6 +94,91 @@ class CNOA():
         
         return ret['success']
     
+    def handler_contacts_online(self, status_list):
+        for i in self.contacts_list:
+            i["iconCls"] = "icon-tree-im-offline"
+        
+        for p in status_list:
+            for i in self.contacts_list:
+                if p[0] == i["uid"]:
+                    i["iconCls"] = "icon-tree-im-online"
+    
+    def handler_recv_file(self, data_json):
+        # recv files
+        """
+        file_json = {
+            'from': 'file', 
+            'name': 'abc.txt', 
+            'fuid': 'sender-id', 
+            'tuid': 'receiver-id', 
+            'type': 'receive', 
+            'id': message-id, 
+            'size': file-size}
+        """
+        file_json = data_json['content']
+        #print file_json
+        r = self.session.get(self.server_url + 
+                "/api/messagerv2/?action=file&task=dlload&id=" + 
+                str(file_json['id']), headers=self.headers, allow_redirects=False)
+        file_url = r.headers['location']
+        file_url = file_url[5:len(file_url)]
+        #print file_url
+        
+        r = self.session.get(self.server_url + file_url, headers=self.headers)
+        self.save_file(file_json['name'], r.content)
+
+        # Download complete response to server
+        datas = {
+                "fileid": file_json["id"],
+                "historyid": data_json['id']
+                }
+        r = self.session.get(self.server_url + "/api/messagerv2/?action=file&task=downcomplete", headers=self.headers, data=datas)
+        
+        uname = self.find_name_by_id(data_json['fuid'])
+        print "[ReceiveMSG] %s: Send file %s(%d bytes)" %(uname, 
+                file_json['name'], file_json['size'])
+        self.emit_recv_msg(self.find_name_by_id(data_json['fuid']), file_json['name'])
+
+    def handler_recv_msg(self, data_json):
+        """
+        Receive message, also includes picture and emoji
+        file url: [^img^] src="file/common/imsnapshot/year/month/file_name.jpg">
+        emoji url: [^img^] src="/resources/images/face_active/file_name.gif">
+        """
+
+        msg_body = data_json['content'] = data_json['content'].replace('[^img^]', '<img')
+
+        pic_content =  re.findall(r"(<img src=\"file\/\w*\/\w*\/\w*\/\w*\/.*>)", data_json['content'])
+        if len(pic_content):
+            pic_content = pic_content[0]
+            #print len(pic_content), pic_content 
+            # recv pictures
+            file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content)
+            file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content)
+
+            file_url = file_url[0]
+            file_name = file_name[0]
+            print file_url, file_name
+            # get file and save it to local
+            r = self.session.get(self.server_url + "/" + file_url + file_name, 
+                    headers=self.headers, stream=True)
+            self.save_picture(file_name, r.content)
+
+        emoji_list = re.findall(r"<img src=\"\/resources\/images\/face_active\/[a-z].\.gif\">", msg_body)
+
+        # remove ">
+        #file_url = file_url[0][0:len(file_url) - 3]
+        
+        #print it['fuid'], it['content']
+        uname = self.find_name_by_id(data_json['fuid'])
+        if data_json['type'] == "person":
+            print "[ReceiveMSG] %s: %s" %(uname, data_json['content'])
+        elif data_json['type'] == "group":
+            grp_name = self.find_name_by_gid(data_json['gid'])
+            print "[ReceiveMSG] Group %s(%s) by %s: %s" % (
+                    grp_name, data_json['gid'], uname, data_json['content'])
+        self.emit_recv_msg(uname, data_json['content'])
+ 
     def fetch_contacts_list(self):
         query_list = ['CNOA_main_struct_list_tree_node_1']
 
@@ -497,13 +582,8 @@ class daemon_thread(threading.Thread):
             if data.has_key("ol"):
                 online_status =  data["ol"]
                 #print online_status
-                for i in self.cnoa.contacts_list:
-                    i["iconCls"] = "icon-tree-im-offline"
-                for p in online_status:
-                    for i in self.cnoa.contacts_list:
-                        if p[0] == i["uid"]:
-                            i["iconCls"] = "icon-tree-im-online"
-                
+                self.cnoa.handler_contacts_online(online_status)
+
             elif data.has_key("hh"):
                 msg = data.get("hh")
                 for it in msg:
@@ -513,93 +593,26 @@ class daemon_thread(threading.Thread):
                          
                         if type(it['content']) is dict:
                             # recv files
-                            file_json = it['content']
-                            print file_json
-                            r = self.cnoa.session.get(self.cnoa.server_url + "/api/messagerv2/?action=file&task=dlload&id=" + str(file_json['id']), headers=self.cnoa.headers, allow_redirects=False)
-                            file_url = r.headers['location']
-                            file_url = file_url[5:len(file_url)]
-                            print file_url
-                            
-                            r = self.cnoa.session.get(self.cnoa.server_url + file_url, headers=self.cnoa.headers)
-                            self.cnoa.save_file(file_json['name'], r.content)
-
-                            datas = {
-                                    "fileid": file_json["id"],
-                                    "historyid": it['id']
-                                    }
-                            r = self.cnoa.session.get(self.cnoa.server_url + "/api/messagerv2/?action=file&task=downcomplete", headers=self.cnoa.headers, data=datas)
-                            print r
-                            """ 
-                            self.cnoa.notify.write_notify(
-                                    self.cnoa.find_name_by_id(it['fuid']), 
-                                    file_json['name'])
-                            """
+                            self.cnoa.handler_recv_file(it)
                         elif re.findall(r"(\[\^img\^\])", it['content']):
                             # Handle file and emoji
-                            """
-                            file url: [^img^] src="file/common/imsnapshot/year/month/file_name.jpg">
-                            emoji url: [^img^] src="/resources/images/face_active/file_name.gif">
-                            """
-
-                            msg_body = it['content'] = it['content'].replace('[^img^]', '<img')
-
-                            pic_content =  re.findall(r"(<img src=\"file\/\w*\/\w*\/\w*\/\w*\/.*>)", it['content'])
-                            if len(pic_content):
-                                pic_content = pic_content[0]
-                                print len(pic_content), pic_content 
-                                # recv pictures
-                                file_url = re.findall(r"(file\/\w*\/\w*\/\w*\/\w*\/)", pic_content)
-                                file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", pic_content)
-
-                                file_url = file_url[0]
-                                file_name = file_name[0]
-                                print file_url, file_name
-                                # get file and save it to local
-                                r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url + file_name, headers=self.cnoa.headers, stream=True)
-                                self.cnoa.save_picture(file_name, r.content)
-                            
-
-                            emoji_list = re.findall(r"<img src=\"\/resources\/images\/face_active\/[a-z].\.gif\">", msg_body)
-
-                            # remove ">
-                            #file_url = file_url[0][0:len(file_url) - 3]
-                            """ 
-                            self.cnoa.notify.write_notify(
-                                    self.cnoa.find_name_by_id(it['fuid']), 
-                                    it['content'])
-                            """ 
+                            self.cnoa.handler_recv_msg(it)
                         elif type(it['content']) is unicode:
                             #print it['fuid'], it['content']
-                            uname = self.cnoa.find_name_by_id(it['fuid'])
-                            print "[ReceiveMSG] %s: %s" %(uname, it['content'])
-                            self.cnoa.send_notify(uname, it['content'])
-                         
+                            self.cnoa.handler_recv_msg(it)
+
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
                     elif it['type'] == "group":
                         self.cnoa.loger.debug(it)
-                        #print "[%s - %s] %s\r\n%s\r\n" % (it['gid'], find_name_by_id(it['fuid']), it['posttime'], it['content'])
-                        gname = self.cnoa.find_name_by_gid(it['gid'])
-                        file_url = re.findall(r"file\/common\/imsnapshot\/\S*", it['content'])
-                        if file_url:
-                            file_name = re.findall(r"(\d*_\d*\.[a-zA-Z]*)", file_url[0])
-                            # remove ">
-                            file_url = file_url[0][0:len(file_url) - 3]
-                            print "[ReceiveFile] %s: %s" %(file_url, file_name)
                         
-                            # get file and save it to local
-                            r = self.cnoa.session.get(self.cnoa.server_url + "/" + file_url, headers=self.cnoa.headers, stream=True)
-                            self.cnoa.save_picture(file_name[0], r.content)
-
-                        self.cnoa.loger.debug("%s %s" %(gname, it['content']))
-                        print "[ReceiveMSG] %s: %s" %(gname, it['content'])
-                        self.cnoa.send_notify(gname, it['content'])
+                        self.cnoa.handler_recv_msg(it)
                         self.cnoa.msg_list.append(it)
                         self.cnoa.save_message(it)
             elif data.has_key("xx"):
                 xx = data.get("xx")
                 #print xx
                 pass
-            time.sleep(2)
+            time.sleep(1)
 
 

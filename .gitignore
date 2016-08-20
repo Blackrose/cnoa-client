@@ -7,3 +7,5 @@ files
 log/
 img/
 files/
+env
+.DS_Store

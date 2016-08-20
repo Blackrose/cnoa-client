@@ -6,8 +6,9 @@ import json
 import operator
 from PySide import QtGui, QtCore
 import cnoa
-import dbus
-import pdb
+import platform
+if platform.system() == "Linux":
+    import dbus
 from blinker import signal
 
 class ActivityLabel(QtGui.QLabel):
@@ -243,7 +244,6 @@ class RightWidget(QtGui.QWidget):
         self.content_wid.setCurrentIndex(idx)
 
     def update_chat_view(self, cid, ctype):
-        pdb.set_trace()
         self.chat_display.clear()
         file_path = "log/"
         if ctype == 1:
@@ -355,6 +355,7 @@ class CNOAWindow(QtGui.QWidget):
         self.resize(600, 600)
         self.center()
         self.show()
+
     
     def slot_sendmsg(self, msg):
         uid = self.cnoa.find_id_by_name(self.right_wid.chat_label.text())
@@ -396,6 +397,9 @@ class CNOAWindow(QtGui.QWidget):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
+    def closeEvent(self, event):
+        event.accept()
+
 class KNotify:
     knotify = None
     def __init__(self):
@@ -412,12 +416,11 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
-
-
-    notify = KNotify()
+    notify = None
+    if platform.system == "Linux":
+        notify = KNotify()
     
     cnoa_lib = cnoa.CNOA(notify)
-    #cnoa_lib.load_config()
 
     if not cnoa_lib.login():
         sys.exit()
