@@ -560,22 +560,27 @@ class CNOA():
         f.write(file_content)
         f.close
 
+    def heartbeat(self):
+        scan_url = "/api/messagerv2/index.php?action=scan"
+        ret = self.session.post(self.server_url + scan_url, \
+                    headers=self.headers, stream=True)
+        try:
+            data = ret.text
+            data = json.loads(data)
+        except ValueError, e:
+            return None
+        return data
+
+
 class daemon_thread(threading.Thread):
     def __init__(self, cnoa):
         threading.Thread.__init__(self)
         self.cnoa = cnoa
 
     def run(self):
-        #global server_url, headers, msg_list, notify
-        scan_url = "/api/messagerv2/index.php?action=scan"
-        print self.cnoa.server_url 
         while True:
-            r = self.cnoa.session.post(self.cnoa.server_url + scan_url, \
-                    headers=self.cnoa.headers, stream=True)
-            data = r.text
-            try:
-                data = json.loads(data)
-            except ValueError, e:
+            data = self.cnoa.heartbeat()
+            if data == None:
                 continue
             #print data
             self.cnoa.loger.debug(data)
